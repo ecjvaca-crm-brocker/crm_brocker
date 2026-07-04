@@ -7,7 +7,7 @@ import pandas as pd
 # 1. CONFIGURACIONES INICIALES GENERALES
 # ==========================================
 # ¡Coloca tu número aquí! Código de país (593 para Ecuador) seguido de tu número sin el cero. Ej: "593987654321"
-NUMERO_WHATSAPP = "593999999999" 
+NUMERO_WHATSAPP = "593998076979" 
 
 # Define la contraseña secreta que tú usarás para ver el Dashboard de tus leads
 PASSWORD_DASHBOARD = "Escala2026" 
