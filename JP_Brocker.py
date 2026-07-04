@@ -6,10 +6,10 @@ import pandas as pd
 # ==========================================
 # 1. CONFIGURACIONES INICIALES GENERALES
 # ==========================================
-# ¡Coloca tu número aquí! Código de país (593 para Ecuador) seguido de tu número sin el cero. Ej: "593987654321"
+# ¡Coloca tu número aquí! Código de país (593 para Ecuador) seguido de tu número sin el cero. Ej: "593999999999"
 NUMERO_WHATSAPP = "593998076979" 
 
-# Define la contraseña secreta que tú usarás para ver el Dashboard de tus leads
+# Contraseña de acceso al Dashboard Corporativo
 PASSWORD_DASHBOARD = "Escala2026" 
 
 st.set_page_config(
@@ -54,71 +54,191 @@ def leer_leads():
     conn.close()
     return df
 
-# Inicializar la Base de Datos al cargar la página
+# Inicializar Base de Datos
 conectar_db()
 
 # ==========================================
-# 3. DISEÑO DE TEMA CORPORATIVO (CSS)
+# 3. IDENTIDAD VISUAL PREMIUM: AZUL MARINO, DORADO Y VERDE FINANCIERO (CSS)
 # ==========================================
 st.markdown("""
     <style>
+    /* Fondo con degradado sofisticado corporativo */
     .stApp {
-        background-color: #FFFFFF;
+        background: linear-gradient(135deg, #FFFFFF 0%, #F0F4F8 100%);
     }
     h1, h2, h3 {
         color: #0A2540 !important;
         font-family: 'Georgia', serif;
     }
+    
+    /* Contenedor principal con bordes dorados y fondos pulidos */
     .card-corporativa {
-        background-color: #F8F9FA;
+        background-color: #FFFFFF;
         padding: 25px;
-        border-radius: 8px;
-        border-top: 4px solid #D4AF37;
-        border-left: 1px solid #E2E8F0;
-        border-right: 1px solid #E2E8F0;
-        border-bottom: 1px solid #E2E8F0;
+        border-radius: 10px;
+        border-top: 5px solid #D4AF37;
+        border-left: 1px solid #D1D5DB;
+        border-right: 1px solid #D1D5DB;
+        border-bottom: 2px solid #0A2540;
         margin-bottom: 20px;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        box-shadow: 0 6px 12px rgba(10,37,64,0.06);
     }
+    
+    /* Botones principales con el Verde Éxito Financiero */
     div.stButton > button:first-child {
-        background-color: #0A2540;
-        color: #D4AF37;
-        border: 2px solid #D4AF37;
+        background-color: #10B981;
+        color: #FFFFFF;
+        border: 2px solid #059669;
         border-radius: 6px;
-        padding: 0.6rem 2rem;
+        padding: 0.7rem 2rem;
         font-weight: bold;
         font-size: 16px;
         width: 100%;
         transition: all 0.3s ease;
+        box-shadow: 0 4px 6px rgba(16,185,129,0.2);
     }
     div.stButton > button:first-child:hover {
-        background-color: #D4AF37;
-        color: #0A2540;
-        border-color: #0A2540;
+        background-color: #0A2540;
+        color: #D4AF37;
+        border-color: #D4AF37;
     }
-    .chat-bubble-vip {
-        background-color: #F4F7FA;
-        padding: 15px;
+    
+    /* Perfil del Ejecutivo Virtual */
+    .ejecutivo-box {
+        background: #FFFFFF;
+        border: 1px solid #E5E7EB;
         border-radius: 12px;
-        border-left: 4px solid #D4AF37;
-        margin-bottom: 15px;
+        padding: 20px;
+        text-align: center;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.04);
+        border-top: 4px solid #10B981;
     }
-    .avatar-img {
+    .ejecutivo-avatar {
+        width: 110px;
+        height: 110px;
         border-radius: 50%;
         object-fit: cover;
+        border: 3px solid #D4AF37;
+        margin: 0 auto 15px auto;
+        display: block;
+    }
+    
+    /* --- ANIMACIÓN SLIDER CONTINUO (De Derecha a Izquierda) --- */
+    .slider-container {
+        width: 100%;
+        max-height: 220px;
+        overflow: hidden;
+        border-radius: 10px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        margin-bottom: 25px;
+        position: relative;
         border: 2px solid #D4AF37;
+    }
+    .slider-track {
+        display: flex;
+        width: 500%; /* Espacio para las 5 imágenes de servicios */
+        animation: slideAnimation 25s infinite linear;
+    }
+    .slide {
+        width: 20%;
+        position: relative;
+    }
+    .slide img {
+        width: 100%;
+        height: 220px;
+        object-fit: cover;
+        filter: brightness(75%);
+    }
+    .slide-text {
+        position: absolute;
+        bottom: 20px;
+        left: 30px;
+        color: #FFFFFF;
+        font-family: 'Georgia', serif;
+        text-shadow: 2px 2px 8px rgba(0,0,0,0.8);
+    }
+    .slide-text h2 {
+        color: #D4AF37 !important;
+        margin: 0;
+        font-size: 1.8rem;
+    }
+    .slide-text p {
+        margin: 5px 0 0 0;
+        font-size: 1.1rem;
+        font-weight: bold;
+    }
+    @keyframes slideAnimation {
+        0% { transform: translateX(0); }
+        16% { transform: translateX(0); }
+        20% { transform: translateX(-20%); }
+        36% { transform: translateX(-20%); }
+        40% { transform: translateX(-40%); }
+        56% { transform: translateX(-40%); }
+        60% { transform: translateX(-60%); }
+        76% { transform: translateX(-60%); }
+        80% { transform: translateX(-80%); }
+        96% { transform: translateX(-80%); }
+        100% { transform: translateX(0); }
     }
     </style>
 """, unsafe_allow_html=True)
 
 # ==========================================
-# 4. CABECERA PRINCIPAL Y PORTADA
+# 4. CABECERA PRINCIPAL EN AZUL CORPORATIVO
 # ==========================================
 st.markdown("<h1 style='text-align: center; font-size: 2.8rem; margin-bottom: 0;'>🏛️ ESCALA FINANCE & INSURANCE</h1>", unsafe_allow_html=True)
 st.markdown("<p style='text-align: center; color: #D4AF37; font-size: 1.4rem; font-weight: bold; margin-top: 0;'>Tu consultor financiero de confianza</p>", unsafe_allow_html=True)
-
 st.write("")
-st.image("https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?auto=format&fit=crop&w=1200&q=80", use_container_width=True)
+
+# ==========================================
+# 5. BANNER ROTATIVO INTERACTIVO DE SERVICIOS (72 PPP DINÁMICO)
+# ==========================================
+st.markdown("""
+<div class="slider-container">
+    <div class="slider-track">
+        <!-- Slide 1: Asesoría Financiera -->
+        <div class="slide">
+            <img src="https://images.unsplash.com/photo-1591696205602-2f950c417cb9?auto=format&fit=crop&w=1200&h=300&q=72">
+            <div class="slide-text">
+                <h2>Asesoría Financiera Corporativa</h2>
+                <p>Estrategia y estructura de financiamiento a tu medida.</p>
+            </div>
+        </div>
+        <!-- Slide 2: Finanzas Personales -->
+        <div class="slide">
+            <img src="https://images.unsplash.com/photo-1559526324-4b87b5e36e44?auto=format&fit=crop&w=1200&h=300&q=72">
+            <div class="slide-text">
+                <h2>Educación y Finanzas Personales</h2>
+                <p>Optimiza el rendimiento y planificación de tu capital.</p>
+            </div>
+        </div>
+        <!-- Slide 3: Crédito Hipotecario -->
+        <div class="slide">
+            <img src="https://images.unsplash.com/photo-1560518883-ce09059eeffa?auto=format&fit=crop&w=1200&h=300&q=72">
+            <div class="slide-text">
+                <h2>Crédito Hipotecario e Inmobiliario</h2>
+                <p>Financiamos la propiedad de tus sueños con agilidad.</p>
+            </div>
+        </div>
+        <!-- Slide 4: Estudios -->
+        <div class="slide">
+            <img src="https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=1200&h=300&q=72">
+            <div class="slide-text">
+                <h2>Crédito Educativo y Maestrías</h2>
+                <p>Impulsa tu perfil profesional en las mejores universidades.</p>
+            </div>
+        </div>
+        <!-- Slide 5: Seguros -->
+        <div class="slide">
+            <img src="https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?auto=format&fit=crop&w=1200&h=300&q=72">
+            <div class="slide-text">
+                <h2>Seguros y Respaldo Patrimonial</h2>
+                <p>Protección estratégica integral para ti y tu empresa.</p>
+            </div>
+        </div>
+    </div>
+</div>
+""", unsafe_allow_html=True)
 
 st.markdown("""
 <div class="card-corporativa">
@@ -130,24 +250,24 @@ st.markdown("""
 
 st.write("---")
 
-# Lista Global de Productos compartida por el Formulario y el Bot
+# Estructura en dos columnas: Formulario de Registro y Ejecutivo Virtual
+col_izq, col_der = st.columns([1.1, 0.9])
+
+# Lista unificada de productos de Escala
 productos = [
     "🎓 Crédito Educativo / Financiamiento para Maestrías",
-    "💼 Crédito de Consumo o Capital de trabajo",
+    "💼 Crédito de Consumo o Equipamiento para Profesionales (Odontólogos, Arquitectos, etc.)",
     "🏡 Crédito Hipotecario / Financiamiento de Vivienda",
     "🚗 Financiamiento Automotriz (Vehículos)",
     "🛡️ Seguros (Vehicular, Médico o Protección de Empresa)"
 ]
-
-# Secciones principales: Formulario y Chatbot
-col_izq, col_der = st.columns([1.1, 0.9])
 
 with col_izq:
     # ==========================================
     # FORMULARIO TRADICIONAL DE CAPTURA
     # ==========================================
     st.markdown("### 📋 Pre-Calificación de Perfil")
-    st.caption("Introduce la información requerida para estructurar la solución a tu medida:")
+    st.caption("Introduce tus datos para ingresar el trámite en nuestro sistema en línea:")
     
     with st.form(key="formulario_leads", clear_on_submit=True):
         c1, c2 = st.columns(2)
@@ -164,8 +284,15 @@ with col_izq:
             
         producto_interes = st.selectbox("🎯 Solución Financiera Requerida:", options=productos)
         
+        # Cláusula obligatoria de Tratamiento de Datos
+        st.markdown("""
+        <p style='font-size: 0.82rem; color: #6B7280; text-align: justify; line-height: 1.2;'>
+            *Al presionar el botón de envío, usted otorga su <strong>consentimiento expreso e informado</strong> para el tratamiento de sus datos personales, con la única finalidad de evaluar su perfil y estructurar sus requerimientos financieros en los servidores centrales de Escala.*
+        </p>
+        """, unsafe_allow_html=True)
+        
         st.write("")
-        boton_enviar = st.form_submit_button("Iniciar Evaluación de Caso 🚀")
+        boton_enviar = st.form_submit_button("Ingresar Trámite Oficial 🚀")
 
     if boton_enviar:
         if not nombre or not cedula or not telefono:
@@ -173,160 +300,65 @@ with col_izq:
         elif len(cedula) < 10 or not cedula.isdigit():
             st.error("⚠️ Documento de identidad no válido (Debe contener 10 números).")
         else:
+            # Guardado inmediato en base central
             guardar_lead(nombre, cedula, telefono, ciudad, producto_interes)
-            st.success(f"🎉 Registro guardado con éxito en el sistema central de Escala, {nombre}.")
+            st.success("🎉 ¡Trámite ingresado con éxito en la plataforma Escala Finance & Insurance!")
             
-            texto_ws = f"Hola Escala Finance & Insurance, acabo de completar la pre-calificación en el portal.\n\n" \
+            texto_ws = f"Hola Escala Finance & Insurance, he completado y autorizado mi pre-calificación en línea.\n\n" \
                        f"👤 *Consultante:* {nombre}\n" \
                        f"🪪 *Cédula:* {cedula}\n" \
                        f"📱 *Contacto:* {telefono}\n" \
                        f"📍 *Ciudad:* {ciudad}\n" \
-                       f"🎯 *Línea:* {producto_interes}"
+                       f"🎯 *Línea:* {producto_interes}\n\n" \
+                       f"📜 *Estado:* Trámite ingresado en línea con consentimiento de datos aprobado."
             
             url_whatsapp = f"https://api.whatsapp.com/send?phone={NUMERO_WHATSAPP}&text={urllib.parse.quote(texto_ws)}"
             st.balloons()
-            st.markdown("""
-            <div style="background-color: #FEF3C7; padding: 15px; border-radius: 6px; border: 1px solid #F59E0B; color: #92400E;">
-                <strong>⚠️ ACCIÓN NECESARIA:</strong> Para validar tu identidad de forma segura y asignarte un consultor, presiona el botón inferior:
-            </div>
-            """, unsafe_allow_html=True)
-            st.write("")
-            st.link_button("🟢 Enviar Expediente vía WhatsApp", url_whatsapp, type="primary")
+            st.link_button("🟢 Validar Identidad vía WhatsApp", url_whatsapp, type="primary")
 
 with col_der:
     # ==========================================
-    # CHATBOT VIRTUAL INTERACTIVO CON PASOS (SOCIABLE)
+    # NUEVA SECCIÓN: EJECUTIVO VIRTUAL DIRECTO A WHATSAPP
     # ==========================================
-    st.markdown("### 🤖 Consultor Virtual Interactivo")
+    st.markdown("### 🤖 Asesor Ejecutivo Virtual")
+    st.caption("Haz clic en nuestro especialista interactivo para iniciar un flujo guiado:")
     
-    # Inicialización de las variables de sesión del bot para recordar las respuestas
-    if "bot_paso" not in st.session_state:
-        st.session_state.bot_paso = 0
-        st.session_state.bot_producto = ""
-        st.session_state.bot_nombre = ""
-        st.session_state.bot_cedula = ""
-        st.session_state.bot_telefono = ""
-        st.session_state.bot_ciudad = ""
-
-    with st.container(border=True):
-        
-        # --- PASO 0: Bienvenida y Selección del Producto ---
-        if st.session_state.bot_paso == 0:
-            st.markdown("""
-            <div class="chat-bubble-vip">
-                <strong>🤖 EscalaBot:</strong> ¡Hola! Bienvenido a Escala Finance & Insurance. Soy tu asesor virtual corporativo. <br><br>
-                Para guiarte de forma personalizada, <strong>¿cuál de nuestras soluciones financieras o de protección estás buscando hoy?</strong>
+    # Mensaje de consentimiento embebido en la API de WhatsApp
+    mensaje_interactivo_bot = (
+        "¡Hola Escala Finance & Insurance! Deseo iniciar mi proceso de asesoría personalizada directamente desde WhatsApp.\n\n"
+        "Me interesa registrar mis datos para las siguientes soluciones:\n"
+        "- Nombre Completo:\n"
+        "- Número de Cédula:\n"
+        "- Celular / Contacto:\n"
+        "- Ciudad de Residencia:\n"
+        "- Servicio de Interés (Crédito / Seguros / Inversión):\n\n"
+        "📜 [CONSENTIMIENTO DE PRIVACIDAD]: Al enviar este mensaje, otorgo mi consentimiento voluntario para el tratamiento de mis datos personales de acuerdo con las normativas vigentes, con el objetivo exclusivo de procesar este trámite corporativo. Entiendo que una vez completado el flujo, mi trámite quedará ingresado de forma exitosa en el ecosistema."
+    )
+    
+    url_ejecutivo_ws = f"https://api.whatsapp.com/send?phone={NUMERO_WHATSAPP}&text={urllib.parse.quote(mensaje_interactivo_bot)}"
+    
+    # Tarjeta de Perfil Profesional clickable
+    st.markdown(f"""
+    <a href="{url_ejecutivo_ws}" target="_blank" style="text-decoration: none; color: inherit;">
+        <div class="ejecutivo-box">
+            <img class="ejecutivo-avatar" src="https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=200&h=200&q=80">
+            <h4 style="margin: 0; color: #0A2540; font-size: 1.25rem;">Ing. Jonathan Vaca</h4>
+            <p style="margin: 3px 0 10px 0; color: #10B981; font-weight: bold; font-size: 0.9rem;">💼 Consultor Financiero Senior</p>
+            <div style="background-color: #F3F4F6; padding: 10px; border-radius: 6px; font-size: 0.88rem; color: #4B5563; text-align: justify;">
+                💬 <strong>¿Prefieres atención en WhatsApp?</strong> Toca mi imagen o este cuadro para iniciar el flujo guiado. Podrás ingresar tus datos paso a paso y el trámite quedará registrado en nuestro sistema con tu consentimiento de datos al finalizar.
             </div>
-            """, unsafe_allow_html=True)
-            
-            prod_elegido = st.selectbox("Selecciona una opción para iniciar el chat:", ["-- Selecciona un servicio --"] + productos, key="bot_prod_select")
-            if prod_elegido != "-- Selecciona un servicio --":
-                st.session_state.bot_producto = prod_elegido
-                st.session_state.bot_paso = 1
-                st.rerun()
-
-        # --- PASO 1: Captura de Nombre ---
-        elif st.session_state.bot_paso == 1:
-            st.markdown(f"""
-            <div class="chat-bubble-vip">
-                🎯 <strong>Línea seleccionada:</strong> {st.session_state.bot_producto}<br><br>
-                <strong>🤖 EscalaBot:</strong> Excelente elección. Contamos con convenios institucionales directos para esa área.<br>
-                Por favor, ingresa tu <strong>Nombre y Apellido Completo</strong> para registrar tu atención:
-            </div>
-            """, unsafe_allow_html=True)
-            
-            nom_input = st.text_input("Escribe tu nombre aquí:", key="input_bot_nom")
-            if st.button("Continuar ➡️", key="btn_bot_1"):
-                if nom_input.strip() != "":
-                    st.session_state.bot_nombre = nom_input
-                    st.session_state.bot_paso = 2
-                    st.rerun()
-                else:
-                    st.error("Por favor, ingresa tu nombre para continuar.")
-
-        # --- PASO 2: Captura de Cédula ---
-        elif st.session_state.bot_paso == 2:
-            st.markdown(f"""
-            <div class="chat-bubble-vip">
-                <strong>🤖 EscalaBot:</strong> Un gusto saludarte, {st.session_state.bot_nombre}.<br>
-                Para la pre-calificación en el sistema, necesito que me indiques tu <strong>Número de Cédula</strong> (10 dígitos):
-            </div>
-            """, unsafe_allow_html=True)
-            
-            ced_input = st.text_input("Escribe tu cédula aquí:", max_chars=10, key="input_bot_ced")
-            if st.button("Continuar ➡️", key="btn_bot_2"):
-                if len(ced_input) == 10 and ced_input.isdigit():
-                    st.session_state.bot_cedula = ced_input
-                    st.session_state.bot_paso = 3
-                    st.rerun()
-                else:
-                    st.error("La cédula debe tener estrictamente 10 números.")
-
-        # --- PASO 3: Captura de Teléfono y Ciudad ---
-        elif st.session_state.bot_paso == 3:
-            st.markdown(f"""
-            <div class="chat-bubble-vip">
-                <strong>🤖 EscalaBot:</strong> ¡Perfecto! Ya casi terminamos.<br>
-                Por último, confírmame tu <strong>Número de Celular (WhatsApp)</strong> y tu <strong>Ciudad de residencia</strong> actual:
-            </div>
-            """, unsafe_allow_html=True)
-            
-            tel_input = st.text_input("Celular (Ej: 099xxxxxxx):", key="input_bot_tel")
-            ciu_input = st.text_input("Ciudad (Ej: Quito):", key="input_bot_ciu")
-            
-            if st.button("Finalizar Consultoría Virtual 🚀", key="btn_bot_3"):
-                if tel_input.strip() != "" and ciu_input.strip() != "":
-                    st.session_state.bot_telefono = tel_input
-                    st.session_state.bot_ciudad = ciu_input
-                    
-                    # GUARDAR EN SQL DESDE EL BOT
-                    guardar_lead(
-                        st.session_state.bot_nombre, 
-                        st.session_state.bot_cedula, 
-                        st.session_state.bot_telefono, 
-                        st.session_state.bot_ciudad, 
-                        st.session_state.bot_producto
-                    )
-                    st.session_state.bot_paso = 4
-                    st.rerun()
-                else:
-                    st.error("Ambos campos son obligatorios para guardar el registro.")
-
-        # --- PASO 4: Cierre Exitoso y Enlace Directo a tu WhatsApp ---
-        elif st.session_state.bot_paso == 4:
-            st.markdown(f"""
-            <div class="chat-bubble-vip" style="border-left: 4px solid #10B981;">
-                <strong>🎉 ¡Análisis del Bot Terminado con Éxito!</strong><br><br>
-                <strong>🤖 EscalaBot:</strong> He generado tu expediente técnico y lo he guardado de forma segura en nuestro servidor central.<br><br>
-                Para asignarte un analista humano en este instante y revisar tasas de interés vigentes, presiona el botón verde de abajo para enviarme tu resumen directamente a mi WhatsApp. ¡Un placer ayudarte!
-            </div>
-            """, unsafe_allow_html=True)
-            
-            texto_bot_ws = f"Hola Escala Finance & Insurance, completé la consulta interactiva con el EscalaBot.\n\n" \
-                           f"👤 *Consultante:* {st.session_state.bot_nombre}\n" \
-                           f"🪪 *Cédula:* {st.session_state.bot_cedula}\n" \
-                           f"📱 *Contacto:* {st.session_state.bot_telefono}\n" \
-                           f"📍 *Ciudad:* {st.session_state.bot_ciudad}\n" \
-                           f"🎯 *Línea Solicitada:* {st.session_state.bot_producto}"
-            
-            url_bot_whatsapp = f"https://api.whatsapp.com/send?phone={NUMERO_WHATSAPP}&text={urllib.parse.quote(texto_bot_ws)}"
-            
-            st.link_button("🟢 Conectarse con un Analista por WhatsApp", url_bot_whatsapp, type="primary")
-            st.write("")
-            
-            if st.button("🔄 Iniciar otra consulta en el Bot"):
-                st.session_state.bot_paso = 0
-                st.session_state.bot_producto = ""
-                st.session_state.bot_nombre = ""
-                st.session_state.bot_cedula = ""
-                st.session_state.bot_telefono = ""
-                st.session_state.bot_ciudad = ""
-                st.rerun()
+            <br>
+            <span style="background-color: #10B981; color: white; padding: 8px 15px; border-radius: 20px; font-weight: bold; font-size: 0.85rem; display: inline-block; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                🟢 Chatear en WhatsApp Ahora
+            </span>
+        </div>
+    </a>
+    """, unsafe_allow_html=True)
 
 st.write("---")
 
 # ==========================================
-# 5. INDICADORES ECONÓMICOS & NOTICIAS
+# 6. INDICADORES ECONÓMICOS & REDES SOCIALES
 # ==========================================
 st.markdown("### 📊 Indicadores Económicos Mundiales y Locales")
 m1, m2, m3, m4, m5 = st.columns(5)
@@ -363,7 +395,7 @@ with col_youtube:
 st.write("---")
 
 # ==========================================
-# 6. TESTIMONIOS CON FOTOGRAFÍAS REALES/PROFESIONALES
+# 7. TESTIMONIOS CON AVATARES
 # ==========================================
 st.markdown("### 💬 Opiniones y Testimonios de Clientes")
 st.write("")
@@ -376,7 +408,7 @@ with t1:
         st.image("https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&h=150&q=80", use_container_width=True)
     with txt1:
         st.markdown("""
-        <div style="background-color: #F8F9FA; padding: 12px; border-radius: 6px; border-left: 3px solid #D4AF37;">
+        <div style="background-color: #FFFFFF; padding: 12px; border-radius: 6px; border-left: 3px solid #D4AF37; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
             "La consultoría para el equipamiento de mi clínica odontológica fue impecable. Conseguí la tasa idónea."<br>
             <small style='color:#718096;'><strong>- Dr. Alejandro R. (Odontólogo)</strong></small>
         </div>
@@ -388,7 +420,7 @@ with t2:
         st.image("https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=150&h=150&q=80", use_container_width=True)
     with txt2:
         st.markdown("""
-        <div style="background-color: #F8F9FA; padding: 12px; border-radius: 6px; border-left: 3px solid #D4AF37;">
+        <div style="background-color: #FFFFFF; padding: 12px; border-radius: 6px; border-left: 3px solid #D4AF37; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
             "Gracias a su asesoría técnica logré financiar mi Maestría en Dirección de Empresas sin comprometer mi liquidez."<br>
             <small style='color:#718096;'><strong>- Mgs. Lorena P. (Arquitecta)</strong></small>
         </div>
@@ -400,7 +432,7 @@ with t3:
         st.image("https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=150&h=150&q=80", use_container_width=True)
     with txt3:
         st.markdown("""
-        <div style="background-color: #F8F9FA; padding: 12px; border-radius: 6px; border-left: 3px solid #D4AF37;">
+        <div style="background-color: #FFFFFF; padding: 12px; border-radius: 6px; border-left: 3px solid #D4AF37; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
             "Excelente servicio para la emisión de la póliza de seguro vehicular de nuestra flota de distribución empresarial."<br>
             <small style='color:#718096;'><strong>- Ing. Javier G. (Gerente General)</strong></small>
         </div>
@@ -409,7 +441,7 @@ with t3:
 st.write("---")
 
 # ==========================================
-# 7. CONTROL INTERNO: DASHBOARD DE SEGUIMIENTO (OCULTO)
+# 8. PANEL DE CONTROL INTERNO (DASHBOARD RE-LEÍDO)
 # ==========================================
 st.markdown("### 🔒 Panel de Control Interno")
 
