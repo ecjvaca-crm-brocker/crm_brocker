@@ -6,7 +6,7 @@ import urllib.parse
 NUMERO_WHATSAPP = "593998076979" 
 
 st.set_page_config(
-    page_title="Escala Finance & Insurance | Consultor Financiero de Confianza", 
+    page_title="Escala Finance & Insurance | Tu consultor financiero de confianza", 
     page_icon="🏛️", 
     layout="wide"
 )
@@ -62,7 +62,7 @@ st.markdown("""
 # 3. CABECERA Y MARCA PROFESIONAL
 # ==========================================
 st.markdown("<h1 style='text-align: center; font-size: 2.8rem; margin-bottom: 0;'>🏛️ ESCALA FINANCE & INSURANCE</h1>", unsafe_allow_html=True)
-st.markdown("<p style='text-align: center; color: #D4AF37; font-size: 1.4rem; font-weight: bold; margin-top: 0;'>Consultor Financiero de Confianza</p>", unsafe_allow_html=True)
+st.markdown("<p style='text-align: center; color: #D4AF37; font-size: 1.4rem; font-weight: bold; margin-top: 0;'>Tu consultor financiero de confianza</p>", unsafe_allow_html=True)
 
 st.write("")
 
@@ -84,12 +84,11 @@ col_izq, col_der = st.columns([1.2, 0.8])
 
 with col_izq:
     # ==========================================
-    # FORMULARIO DE PRE-CALIFICACIÓN (CORREGIDO)
+    # FORMULARIO DE PRE-CALIFICACIÓN
     # ==========================================
     st.markdown("### 📋 Pre-Calificación de Perfil")
     st.caption("Introduce la información requerida para estructurar la solución a tu medida:")
     
-    # Todo el contenido se declara estrictamente dentro del contenedor del formulario
     with st.form(key="formulario_leads", clear_on_submit=False):
         c1, c2 = st.columns(2)
         with c1:
@@ -110,10 +109,11 @@ with col_izq:
             "🚗 Financiamiento Automotriz (Vehículos)",
             "🛡️ Seguros (Vehicular, Médico o Protección de Empresa)"
         ]
-        producto_interes = st.selectbox("🎯 Solución Financiera Requerida:", opciones=productos)
+        
+        # CORRECCIÓN AQUÍ: Cambiado 'opciones=' por 'options=' (Sintaxis nativa de Streamlit)
+        producto_interes = st.selectbox("🎯 Solución Financiera Requerida:", options=productos)
         
         st.write("")
-        # Botón obligatorio de cierre de formulario
         boton_enviar = st.form_submit_button("Iniciar Evaluación de Caso 🚀")
 
     if boton_enviar:
@@ -197,13 +197,13 @@ col_noticias, col_linkedin, col_youtube = st.columns([1, 1, 1])
 with col_noticias:
     st.markdown("### 📰 Actualidad y Economía")
     st.markdown("""
-    *   **Bloomberg:** *Bancos centrales evalúan ajustes de tasas de interés comerciales para el tercer trimestre.*
-    *   **CNN Business:** *Mercados globales reaccionan al alza impulsados por el sector de tecnología e IA.*
-    *   **Revista Ekos:** *Ecuador registra un incremento en solicitudes de microcréditos productivos corporativos.*
+    * **Bloomberg:** *Bancos centrales evalúan ajustes de tasas de interés comerciales para el tercer trimestre.*
+    * **CNN Business:** *Mercados globales reaccionan al alza impulsados por el sector de tecnología e IA.*
+    * **Revista Ekos:** *Ecuador registra un incremento en solicitudes de microcréditos productivos corporativos.*
     """)
 
 # ==========================================
-# 6. LINKEDIN CORPORATIVO ENLAZADO (Tu Enlace Real)
+# 6. LINKEDIN CORPORATIVO ENLAZADO
 # ==========================================
 with col_linkedin:
     st.markdown("### 🔗 Publicaciones en LinkedIn")
@@ -211,17 +211,15 @@ with col_linkedin:
     Manténgase conectado con mis análisis de mercado, liderazgo y consejos corporativos semanales de primera mano.
     """)
     st.write("")
-    # Enlace directo a tu perfil profesional
     st.link_button("🌐 Visitar Mi Perfil en LinkedIn", "https://linkedin.com/in/jonathan-paul-vaca-cruz-70b378b8")
 
 # ==========================================
-# 7. CANAL DE YOUTUBE ENLAZADO (Tu Enlace Real)
+# 7. CANAL DE YOUTUBE ENLAZADO
 # ==========================================
 with col_youtube:
     st.markdown("### 🎥 Educación Financiera")
     st.caption("Material audiovisual extraído de mi canal de YouTube:")
     st.write("")
-    # Enlace directo a tu canal de YouTube
     st.link_button("📺 Ir a mi Canal de YouTube", "http://www.youtube.com/@jonathanvaca3000")
 
 st.write("---")
