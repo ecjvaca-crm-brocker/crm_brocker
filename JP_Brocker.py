@@ -1,41 +1,37 @@
 import streamlit as st
 import urllib.parse
 
-# 1. CONFIGURACIÓN DE TU NÚMERO DE WHATSAPP (¡Pon tu número aquí!)
+# 1. CONFIGURACIÓN DE TU NÚMERO DE WHATSAPP (¡Coloca tu número aquí!)
 # Código de país (593 para Ecuador) seguido de tu número sin el cero. Ej: "593987654321"
 NUMERO_WHATSAPP = "593998076979" 
 
 st.set_page_config(
-    page_title="Valora | Consultor Financiero de Confianza", 
+    page_title="Escala Finance & Insurance | Consultor Financiero de Confianza", 
     page_icon="🏛️", 
-    layout="wide" # Cambiado a ancho para organizar mejor las noticias y cifras
+    layout="wide"
 )
 
-# 2. CONFIGURACIÓN DEL TEMA (COLORES AZUL Y DORADO EXECUTIVO + ESTILOS CSS)
+# 2. CONFIGURACIÓN DEL TEMA (AZUL CORPORATIVO Y DORADO)
 st.markdown("""
     <style>
-    /* Fondo general de la app */
     .stApp {
         background-color: #FFFFFF;
     }
-    /* Títulos principales en Azul Corporativo */
     h1, h2, h3 {
         color: #0A2540 !important;
         font-family: 'Georgia', serif;
     }
-    /* Estilo de Tarjetas con borde Dorado */
     .card-corporativa {
         background-color: #F8F9FA;
         padding: 25px;
         border-radius: 8px;
-        border-top: 4px solid #D4AF37; /* Dorado */
+        border-top: 4px solid #D4AF37;
         border-left: 1px solid #E2E8F0;
         border-right: 1px solid #E2E8F0;
         border-bottom: 1px solid #E2E8F0;
         margin-bottom: 20px;
         box-shadow: 0 4px 6px rgba(0,0,0,0.05);
     }
-    /* Botones principales en Azul con letras doradas/blancas */
     div.stButton > button:first-child {
         background-color: #0A2540;
         color: #D4AF37;
@@ -52,7 +48,6 @@ st.markdown("""
         color: #0A2540;
         border-color: #0A2540;
     }
-    /* Burbuja de Chatbot */
     .chat-bubble-vip {
         background-color: #F4F7FA;
         padding: 15px;
@@ -64,36 +59,37 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # ==========================================
-# 3. CABECERA Y PROPUESTA DE VALOR (Punto 1 y 2)
+# 3. CABECERA Y MARCA PROFESIONAL
 # ==========================================
-st.markdown("<h1 style='text-align: center; font-size: 3rem; margin-bottom: 0;'>🏛️ VALORA</h1>", unsafe_allow_html=True)
-st.markdown("<p style='text-align: center; color: #D4AF37; font-size: 1.5rem; font-weight: bold; margin-top: 0;'>Consultor Financiero de Confianza</p>", unsafe_allow_html=True)
+st.markdown("<h1 style='text-align: center; font-size: 2.8rem; margin-bottom: 0;'>🏛️ ESCALA FINANCE & INSURANCE</h1>", unsafe_allow_html=True)
+st.markdown("<p style='text-align: center; color: #D4AF37; font-size: 1.4rem; font-weight: bold; margin-top: 0;'>Consultor Financiero de Confianza</p>", unsafe_allow_html=True)
 
 st.write("")
 
-# Banner con Imagen de Confianza Financiera incorporada desde Unsplash (Punto 2)
+# Banner corporativo elegante
 st.image("https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?auto=format&fit=crop&w=1200&q=80", use_container_width=True)
 
 st.markdown("""
 <div class="card-corporativa">
     <h3 style='margin-top:0;'>✨ Asesoría Patrimonial y Estrategia de Financiamiento</h3>
-    <p style='color: #4A5568; font-size: 1.1rem;'>Conectamos tus metas con las mejores opciones de financiamiento, inversión o protección del mercado mediante un análisis técnico rigurojo y relaciones directas con proveedores aliados institucionales.</p>
+    <p style='color: #4A5568; font-size: 1.1rem;'>Conectamos tus metas con las mejores opciones de financiamiento, inversión o protección del mercado mediante un análisis técnico riguroso y relaciones directas con proveedores institucionales.</p>
     <strong style='color: #0A2540;'>💼 Nuestra consultoría inicial no genera honorarios para ti</strong> (estos son cubiertos de manera directa por las firmas aliadas del ecosistema).
 </div>
 """, unsafe_allow_html=True)
 
 st.write("---")
 
-# Creamos un diseño de dos columnas principales para la sección media
+# Organización en dos columnas para el Formulario y el Chatbot
 col_izq, col_der = st.columns([1.2, 0.8])
 
 with col_izq:
     # ==========================================
-    # FORMULARIO DE PRE-CALIFICACIÓN
+    # FORMULARIO DE PRE-CALIFICACIÓN (CORREGIDO)
     # ==========================================
     st.markdown("### 📋 Pre-Calificación de Perfil")
     st.caption("Introduce la información requerida para estructurar la solución a tu medida:")
     
+    # Todo el contenido se declara estrictamente dentro del contenedor del formulario
     with st.form(key="formulario_leads", clear_on_submit=False):
         c1, c2 = st.columns(2)
         with c1:
@@ -117,6 +113,7 @@ with col_izq:
         producto_interes = st.selectbox("🎯 Solución Financiera Requerida:", opciones=productos)
         
         st.write("")
+        # Botón obligatorio de cierre de formulario
         boton_enviar = st.form_submit_button("Iniciar Evaluación de Caso 🚀")
 
     if boton_enviar:
@@ -127,7 +124,7 @@ with col_izq:
         else:
             st.success(f"🎉 Registro estructurado con éxito, {nombre}.")
             
-            texto_ws = f"Hola VALORA, acabo de completar la pre-calificación en el portal.\n\n" \
+            texto_ws = f"Hola Escala Finance & Insurance, acabo de completar la pre-calificación en el portal.\n\n" \
                        f"👤 *Consultante:* {nombre}\n" \
                        f"🪪 *Cédula:* {cedula}\n" \
                        f"📱 *Contacto:* {telefono}\n" \
@@ -146,14 +143,14 @@ with col_izq:
 
 with col_der:
     # ==========================================
-    # CHATBOT CON EL BOTÓN DE WHATSAPP INTEGRADO (Punto 2)
+    # CHATBOT VIRTUAL INTERACTIVO
     # ==========================================
     st.markdown("### 🤖 Consultor Virtual")
     
     with st.container(border=True):
         st.markdown("""
         <div class="chat-bubble-vip">
-            <strong>🤖 ValoraBot:</strong> Bienvenido. ¿Tiene alguna inquietud técnica sobre los requisitos, tasas o líneas de seguros antes de enviar su formulario?
+            <strong>🤖 EscalaBot:</strong> Bienvenido a Escala Finance & Insurance. ¿Tiene alguna inquietud sobre requisitos o tasas antes de enviar su formulario?
         </div>
         """, unsafe_allow_html=True)
         
@@ -162,16 +159,15 @@ with col_der:
         if pregunta:
             duda = pregunta.lower()
             if "maestria" in duda or "estudio" in duda or "educativo" in duda:
-                st.write("🤖 **ValoraBot:** Las soluciones educativas requieren carta de admisión y un aval de ingresos estables (mínimo 1 año fiscal).")
+                st.write("🤖 **EscalaBot:** Las soluciones de estudio requieren la carta de admisión institucional y el aval de estabilidad de ingresos.")
             elif "seguro" in duda or "vehicular" in duda or "poliza" in duda:
-                st.write("🤖 **ValoraBot:** Estructuramos pólizas de seguro con tasas preferenciales corporativas y deducibles optimizados.")
+                st.write("🤖 **EscalaBot:** Estructuramos pólizas vehiculares y de salud con primas optimizadas y deducibles corporativos.")
             elif "requisito" in duda or "papeles" in duda:
-                st.write("🤖 **ValoraBot:** Documentación base: Cédula, Planilla de Servicios, y estados de cuenta o declaraciones de IVA/IR del SRI.")
+                st.write("🤖 **EscalaBot:** Requisitos base: Cédula, Planilla de servicios residenciales y justificativos de ingresos (Roles o formularios SRI).")
             else:
-                st.write("🤖 **ValoraBot:** Entendido. Para coordinar una respuesta técnica a esa consulta precisa, le sugiero hablar directamente con un analista:")
+                st.write("🤖 **EscalaBot:** Entendido. Para coordinar una respuesta técnica a esa consulta precisa, le sugiero hablar directamente con un analista:")
             
-            # SOLUCIÓN: Botón de WhatsApp que SIEMPRE aparece en el chatbot tras preguntar
-            msg_bot = f"Hola, deseo una consulta directa. Estaba usando el asistente virtual y tengo esta duda: '{pregunta}'"
+            msg_bot = f"Hola, deseo una consulta directa. Estaba usando el asistente virtual de Escala y tengo esta duda: '{pregunta}'"
             url_bot = f"https://api.whatsapp.com/send?phone={NUMERO_WHATSAPP}&text={urllib.parse.quote(msg_bot)}"
             st.write("")
             st.link_button("📱 Resolver Duda por WhatsApp Directo", url_bot)
@@ -179,9 +175,9 @@ with col_der:
 st.write("---")
 
 # ==========================================
-# 4. MERCADOS FINANCIEROS (YAHOO FINANCE SIMULADO - Punto 5)
+# 4. MERCADOS FINANCIEROS (INDICADORES ECONÓMICOS)
 # ==========================================
-st.markdown("### 📊 Indicadores Económicos Mundiales y Locales (Yahoo Finance & Bolsas)")
+st.markdown("### 📊 Indicadores Económicos Mundiales y Locales")
 st.caption("Monitoreo macroeconómico referencial:")
 m1, m2, m3, m4, m5 = st.columns(5)
 m1.metric(label="🇺🇸 S&P 500", value="5,137.08", delta="+0.80%")
@@ -192,44 +188,46 @@ m5.metric(label="🏦 BV Guayaquil", value="985.40", delta="-0.08%")
 
 st.write("---")
 
-# Diseño de 3 columnas para Noticias, LinkedIn y Educación
+# Organización de la sección inferior en 3 columnas
 col_noticias, col_linkedin, col_youtube = st.columns([1, 1, 1])
 
 # ==========================================
-# 5. NOTICIAS DE NEGOCIOS (Punto 6)
+# 5. NOTICIAS DE NEGOCIOS Y ECONOMÍA
 # ==========================================
 with col_noticias:
     st.markdown("### 📰 Actualidad y Economía")
     st.markdown("""
     *   **Bloomberg:** *Bancos centrales evalúan ajustes de tasas de interés comerciales para el tercer trimestre.*
     *   **CNN Business:** *Mercados globales reaccionan al alza impulsados por el sector de tecnología e IA.*
-    *   **Revista Ekos:** *Ecuador registra un incremento del 4.2% en solicitudes de microcréditos productivos de consumo.*
+    *   **Revista Ekos:** *Ecuador registra un incremento en solicitudes de microcréditos productivos corporativos.*
     """)
 
 # ==========================================
-# 6. LINKEDIN CORPORATIVO (Punto 3)
+# 6. LINKEDIN CORPORATIVO ENLAZADO (Tu Enlace Real)
 # ==========================================
 with col_linkedin:
     st.markdown("### 🔗 Publicaciones en LinkedIn")
     st.markdown("""
     Manténgase conectado con mis análisis de mercado, liderazgo y consejos corporativos semanales de primera mano.
     """)
-    # Enlace directo a tu perfil o feed de LinkedIn
-    st.link_button("🌐 Visitar Mi Perfil Profesional en LinkedIn", "https://www.linkedin.com")
+    st.write("")
+    # Enlace directo a tu perfil profesional
+    st.link_button("🌐 Visitar Mi Perfil en LinkedIn", "https://linkedin.com/in/jonathan-paul-vaca-cruz-70b378b8")
 
 # ==========================================
-# 7. EDUCACIÓN FINANCIERA - YOUTUBE (Punto 4)
+# 7. CANAL DE YOUTUBE ENLAZADO (Tu Enlace Real)
 # ==========================================
 with col_youtube:
     st.markdown("### 🎥 Educación Financiera")
     st.caption("Material audiovisual extraído de mi canal de YouTube:")
-    # Video corporativo financiero de ejemplo (puedes cambiar esta URL por la de tu video)
-    st.video("https://www.youtube.com/watch?v=dQw4w9WgXcQ")
+    st.write("")
+    # Enlace directo a tu canal de YouTube
+    st.link_button("📺 Ir a mi Canal de YouTube", "http://www.youtube.com/@jonathanvaca3000")
 
 st.write("---")
 
 # ==========================================
-# 8. COMENTARIOS Y TESTIMONIOS DE CLIENTES (Punto 7)
+# 8. TESTIMONIOS DE CLIENTES
 # ==========================================
 st.markdown("### 💬 Opiniones y Testimonios de Clientes")
 
