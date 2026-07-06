@@ -2,11 +2,12 @@ import streamlit as st
 import urllib.parse
 import sqlite3
 import pandas as pd
+from datetime import datetime
 
 # ==========================================
 # 1. CONFIGURACIONES INICIALES GENERALES
 # ==========================================
-# ¡Coloca tu número aquí! Código de país (593 para Ecuador) seguido de tu número sin el cero. Ej: "593999999999"
+# ¡Código de país (593 para Ecuador) seguido de tu número sin el cero.
 NUMERO_WHATSAPP = "593998076979" 
 
 # Contraseña de acceso al Dashboard Corporativo
@@ -18,118 +19,48 @@ st.set_page_config(
     layout="wide"
 )
 
-# Imagen real del Ec. Jonathan Vaca convertida a Base64 para que nunca se rompa en la nube
-FOTO_ECONOMISTA_BASE64 = (
-    "data:image/jpeg;base64,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"
-    "zpED/P18YfD9fWIPr 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"
-    "1h0OvpDoRHT Do6ekInp9YkHTh+vSEDofWHf6Q769PvEQ6evh DoenvEh8fD+vSED4ekIn8/OvpEQ6fWH"
-    "p+U8In+pt7Q6E Onq8OHpDw6er8ofH9/rEDp6ffwh6w/0/OsREdfDr4wE/M9IeyU2UvFYrRLfUqa6XId"
-    "Z0GgbePR+1WExRwiZMuaJa0pUiYtaFLBSEpLpIJJrTyvHnPZKcFYzE6ZaVErmgqKiXGsvptXvHpfavC"
-    "TxgyzTZaUqXNUtalgJCUoA1EAtUfaPRid+9nBkxd72AuyeV4wZhORJnImK06Z0xaFFKgFEkpUku7vTwH"
-    "itM1yjGKXhFTZyVy5K1qWtCFrUomUtCgVEuA6vYwG7IZXijmE1EqciYrvAZs5KypIUFElSVAsXUatTwH"
-    "itcyyjF97hFTZqpcrEzFmXLC1KUoiWvUoEFrD8BiIvaKyY+vaPQOwWUCbMlzZ0xKUhfAStawpWpQDkkg"
-    "fEPKPVpfCDoekfOnYPKsbMxctEnE6Za1/9zXNWhTBUxwEivEPmO8fRYOvpDk7Y8WKv6DoenrD0/YekIh"
-    "6vCh/mWOnrD1fo9InXw6+MIgOnr9YgdPU+gjp/NInTp8YfD9Pt4wiP/Z"
-)
+# URL de respaldo estable en la nube para el avatar corporativo (Evita rupturas por strings base64 truncados)
+URL_FOTO_ASESOR = "https://cdn-icons-png.flaticon.com/512/3135/3135715.png"
+
+# ==========================================
+# 2. CAPA DE PERSISTENCIA (CONEXIÓN BASE DE DATOS SQLITE)
+# ==========================================
+def init_db():
+    conn = sqlite3.connect("escala_web_leads.db")
+    cursor = conn.cursor()
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS web_leads (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            fecha TEXT,
+            nombre TEXT,
+            cedula TEXT,
+            telefono TEXT,
+            ciudad TEXT,
+            producto TEXT
+        )
+    """)
+    conn.commit()
+    conn.close()
+
+def guardar_lead(nombre, cedula, telefono, ciudad, producto):
+    conn = sqlite3.connect("escala_web_leads.db")
+    cursor = conn.cursor()
+    fecha_hoy = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    cursor.execute("""
+        INSERT INTO web_leads (fecha, nombre, cedula, telefono, ciudad, producto)
+        VALUES (?, ?, ?, ?, ?, ?)
+    """, (fecha_hoy, nombre, cedula, telefono, ciudad, producto))
+    conn.commit()
+    conn.close()
+
+def leer_leads():
+    conn = sqlite3.connect("escala_web_leads.db")
+    df = pd.read_sql_query("SELECT * FROM web_leads ORDER BY id DESC", conn)
+    conn.close()
+    return df
+
+# Inicializar Base de Datos de manera segura en cada arranque
+init_db()
 
 # ==========================================
 # 3. IDENTIDAD VISUAL PREMIUM (CSS)
@@ -202,7 +133,7 @@ st.markdown("""
         display: block;
     }
     
-    /* --- SLIDER CONTINUO AJUSTADO CON LA PALABRA "ASESORÍA" (72 PPP) --- */
+    /* --- SLIDER CONTINUO --- */
     .slider-container {
         width: 100%;
         max-height: 220px;
@@ -264,14 +195,14 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # ==========================================
-# 4. CABECERA PRINCIPAL EN AZUL FINANCIERO
+# 4. CABECERA PRINCIPAL
 # ==========================================
 st.markdown("<h1 style='text-align: center; font-size: 2.8rem; margin-bottom: 0;'>🏛️ ESCALA FINANCE & INSURANCE</h1>", unsafe_allow_html=True)
 st.markdown("<p style='text-align: center; color: #D4AF37; font-size: 1.4rem; font-weight: bold; margin-top: 0;'>Tu consultor financiero de confianza</p>", unsafe_allow_html=True)
 st.write("")
 
 # ==========================================
-# 5. BANNER ROTATIVO INTERACTIVO: ENFOQUE PURO EN "ASESORÍA"
+# 5. BANNER ROTATIVO INTERACTIVO
 # ==========================================
 st.markdown("""
 <div class="slider-container">
@@ -325,21 +256,17 @@ st.markdown("""
 
 st.write("---")
 
-# Lista Global de Servicios de Consultoría / Corretaje
 servicios_escala = [
     "1️⃣ Servicio de Asesoría para Financiamiento Educativo y Maestrías",
     "2️⃣ Servicio de Asesoría para Créditos de Consumo o Capital de Trabajo",
     "3️⃣ Servicio de Asesoría para Crédito Hipotecario y Financiamiento Inmobiliario",
     "4️⃣ Servicio de Asesoría para Financiamiento Automotriz (Vehículos)",
-    "5️⃣ Servicio de Asesoría en Seguros (Vehicular, Médico o Protección familiar y  Colectiva)"
+    "5️⃣ Servicio de Asesoría en Seguros (Vehicular, Médico o Protección familiar y Colectiva)"
 ]
 
 col_izq, col_der = st.columns([1.1, 0.9])
 
 with col_izq:
-    # ==========================================
-    # FORMULARIO TRADICIONAL DE CAPTURA
-    # ==========================================
     st.markdown("### 📋 Pre-Calificación de Perfil")
     st.caption("Introduce tus datos para ingresar el trámite en nuestro sistema en línea:")
     
@@ -356,7 +283,6 @@ with col_izq:
         with c4:
             ciudad = st.text_input("📍 Ciudad de Residencia:", placeholder="Ej: Ibarra / Quito")
             
-            # Remover palabras que impliquen ser dueño del producto bancario
         opciones_formulario = [s.split("para ")[-1] if "para " in s else s.split("en ")[-1] for s in servicios_escala]
         producto_interes = st.selectbox("🎯 Solución Técnica de Interés:", options=opciones_formulario)
         
@@ -375,7 +301,7 @@ with col_izq:
         elif len(cedula) < 10 or not cedula.isdigit():
             st.error("⚠️ Documento de identidad no válido (Debe contener 10 números).")
         else:
-            guardar_lead(nombre, cedula, telefono, ciudad, producto_interes)
+            guardar_lead(nombre, cedula, telefono, city=ciudad, product=producto_interes)
             st.success("🎉 ¡Trámite ingresado con éxito en la plataforma Escala Finance & Insurance!")
             
             texto_ws = f"Hola Escala Finance & Insurance, he completado y autorizado mi pre-calificación en línea.\n\n" \
@@ -391,13 +317,9 @@ with col_izq:
             st.link_button("🟢 Validar Identidad vía WhatsApp", url_whatsapp, type="primary")
 
 with col_der:
-    # ==========================================
-    # SECCIÓN: ASESOR VIRTUAL INTERACTIVO (WHATSAPP SECUENCIAL)
-    # ==========================================
     st.markdown("### 🤖 Asesor Ejecutivo Virtual")
     st.caption("Toca la fotografía de tu asesor para iniciar el flujo interactivo estructurado:")
     
-    # Construcción detallada del flujo conversacional para WhatsApp
     flujo_bot_whatsapp = (
         "🏛️ [ESCALA FINANCE & INSURANCE - ASISTENTE VIRTUAL]\n\n"
         "🤖 ¡Hola! Bienvenido al canal interactivo de Escala. Estoy aquí para ingresar tu trámite de forma inmediata.\n\n"
@@ -421,11 +343,10 @@ with col_der:
     
     url_flujo_completo = f"https://api.whatsapp.com/send?phone={NUMERO_WHATSAPP}&text={urllib.parse.quote(flujo_bot_whatsapp)}"
     
-    # Tarjeta Clickable en HTML utilizando tu foto en base64
     st.markdown(f"""
     <a href="{url_flujo_completo}" target="_blank" style="text-decoration: none; color: inherit;">
         <div class="ejecutivo-box">
-            <img class="ejecutivo-avatar" src="{FOTO_ECONOMISTA_BASE64}">
+            <img class="ejecutivo-avatar" src="{URL_FOTO_ASESOR}">
             <h4 style="margin: 0; color: #0A2540; font-size: 1.25rem;">Ec. Jonathan Vaca Cruz</h4>
             <p style="margin: 3px 0 10px 0; color: #10B981; font-weight: bold; font-size: 0.9rem;">💼 Broker & Consultor Financiero Senior</p>
             <div style="background-color: #F0F4F8; padding: 12px; border-radius: 8px; font-size: 0.88rem; color: #374151; text-align: justify; border-left: 3px solid #10B981;">
