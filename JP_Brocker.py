@@ -7,10 +7,7 @@ from datetime import datetime
 # ==========================================
 # 1. CONFIGURACIONES INICIALES GENERALES
 # ==========================================
-# ¡Código de país (593 para Ecuador) seguido de tu número sin el cero.
 NUMERO_WHATSAPP = "593998076979" 
-
-# Contraseña de acceso al Dashboard Corporativo
 PASSWORD_DASHBOARD = "Escala2026" 
 
 st.set_page_config(
@@ -19,8 +16,8 @@ st.set_page_config(
     layout="wide"
 )
 
-# URL de respaldo estable en la nube para el avatar corporativo (Evita rupturas por strings base64 truncados)
-URL_FOTO_ASESOR = "https://cdn-icons-png.flaticon.com/512/3135/3135715.png"
+# 📸 ENLACE DIRECTO CORREGIDO DE SU FOTOGRAFÍA REAL DESDE GITHUB
+URL_FOTO_ASESOR = "https://raw.githubusercontent.com/ecjvaca-crm-brocker/crm_brocker/main/IMGAENJONAS.jpeg"
 
 # ==========================================
 # 2. CAPA DE PERSISTENCIA (CONEXIÓN BASE DE DATOS SQLITE)
@@ -59,11 +56,10 @@ def leer_leads():
     conn.close()
     return df
 
-# Inicializar Base de Datos de manera segura en cada arranque
 init_db()
 
 # ==========================================
-# 3. IDENTIDAD VISUAL PREMIUM (CSS)
+# 3. IDENTIDAD VISUAL PREMIUM Y ANIMACIONES (CSS)
 # ==========================================
 st.markdown("""
     <style>
@@ -71,7 +67,7 @@ st.markdown("""
     .stApp {
         background: linear-gradient(135deg, #FFFFFF 0%, #EBF4FC 100%);
     }
-    h1, h2, h3 {
+    h1, h2, h3, h4 {
         color: #0A2540 !important;
         font-family: 'Georgia', serif;
     }
@@ -124,19 +120,19 @@ st.markdown("""
         border-color: #D4AF37;
     }
     .ejecutivo-avatar {
-        width: 115px;
-        height: 115px;
+        width: 130px;
+        height: 130px;
         border-radius: 50%;
         object-fit: cover;
-        border: 3px solid #D4AF37;
+        border: 4px solid #D4AF37;
         margin: 0 auto 12px auto;
         display: block;
     }
     
-    /* --- SLIDER CONTINUO --- */
+    /* --- ESTRUCTURA GENERAL DE SLIDERS DINÁMICOS --- */
     .slider-container {
         width: 100%;
-        max-height: 220px;
+        max-height: 230px;
         overflow: hidden;
         border-radius: 10px;
         box-shadow: 0 4px 15px rgba(0,0,0,0.1);
@@ -149,35 +145,43 @@ st.markdown("""
         width: 500%;
         animation: slideAnimation 25s infinite linear;
     }
+    .slider-track-fast {
+        display: flex;
+        width: 300%;
+        animation: slideAnimationThree 15s infinite linear;
+    }
     .slide {
-        width: 20%;
+        width: 100%;
         position: relative;
     }
     .slide img {
         width: 100%;
-        height: 220px;
+        height: 230px;
         object-fit: cover;
-        filter: brightness(70%);
+        filter: brightness(65%);
     }
     .slide-text {
         position: absolute;
         bottom: 20px;
-        left: 30px;
+        left: 25px;
+        right: 25px;
         color: #FFFFFF;
         font-family: 'Georgia', serif;
-        text-shadow: 2px 2px 8px rgba(0,0,0,0.85);
+        text-shadow: 2px 2px 8px rgba(0,0,0,0.9);
     }
-    .slide-text h2 {
+    .slide-text h2, .slide-text h3 {
         color: #D4AF37 !important;
         margin: 0;
-        font-size: 1.7rem;
+        font-size: 1.5rem;
     }
     .slide-text p {
         margin: 5px 0 0 0;
-        font-size: 1.1rem;
+        font-size: 1rem;
         font-weight: bold;
         color: #FFFFFF;
     }
+
+    /* Keyframes Animación 5 Slides */
     @keyframes slideAnimation {
         0% { transform: translateX(0); }
         16% { transform: translateX(0); }
@@ -191,6 +195,17 @@ st.markdown("""
         96% { transform: translateX(-80%); }
         100% { transform: translateX(0); }
     }
+
+    /* Keyframes Animación 3 Slides */
+    @keyframes slideAnimationThree {
+        0% { transform: translateX(0); }
+        28% { transform: translateX(0); }
+        33% { transform: translateX(-33.33%); }
+        61% { transform: translateX(-33.33%); }
+        66% { transform: translateX(-66.66%); }
+        94% { transform: translateX(-66.66%); }
+        100% { transform: translateX(0); }
+    }
     </style>
 """, unsafe_allow_html=True)
 
@@ -202,46 +217,16 @@ st.markdown("<p style='text-align: center; color: #D4AF37; font-size: 1.4rem; fo
 st.write("")
 
 # ==========================================
-# 5. BANNER ROTATIVO INTERACTIVO
+# 5. BANNER ROTATIVO INTERACTIVO DE SERVICIOS
 # ==========================================
 st.markdown("""
 <div class="slider-container">
     <div class="slider-track">
-        <div class="slide">
-            <img src="https://images.unsplash.com/photo-1591696205602-2f950c417cb9?auto=format&fit=crop&w=1200&h=300&q=72">
-            <div class="slide-text">
-                <h2>Servicio de Asesoría Financiera Corporativa</h2>
-                <p>Estructuración técnica independiente de soluciones de liquidez.</p>
-            </div>
-        </div>
-        <div class="slide">
-            <img src="https://images.unsplash.com/photo-1559526324-4b87b5e36e44?auto=format&fit=crop&w=1200&h=300&q=72">
-            <div class="slide-text">
-                <h2>Servicio de Asesoría en Finanzas Personales</h2>
-                <p>Optimización patrimonial y planificación de capital de largo plazo.</p>
-            </div>
-        </div>
-        <div class="slide">
-            <img src="https://images.unsplash.com/photo-1560518883-ce09059eeffa?auto=format&fit=crop&w=1200&h=300&q=72">
-            <div class="slide-text">
-                <h2>Servicio de Asesoría Inmobiliaria e Hipotecaria</h2>
-                <p>Intermediación técnica y corretaje ágil para compra de bienes.</p>
-            </div>
-        </div>
-        <div class="slide">
-            <img src="https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=1200&h=300&q=72">
-            <div class="slide-text">
-                <h2>Servicio de Asesoría para Estudios y Maestrías</h2>
-                <p>Canalización de recursos educativos para potenciar tu perfil profesional.</p>
-            </div>
-        </div>
-        <div class="slide">
-            <img src="https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?auto=format&fit=crop&w=1200&h=300&q=72">
-            <div class="slide-text">
-                <h2>Servicio de Asesoría en Seguros y Respaldo Patrimonial</h2>
-                <p>Mitigación técnica de riesgos para ti, tu familia y tu empresa.</p>
-            </div>
-        </div>
+        <div class="slide"><img src="https://images.unsplash.com/photo-1591696205602-2f950c417cb9?auto=format&fit=crop&w=1200&h=300&q=72"><div class="slide-text"><h2>Servicio de Asesoría Financiera Corporativa</h2><p>Estructuración técnica independiente de soluciones de liquidez.</p></div></div>
+        <div class="slide"><img src="https://images.unsplash.com/photo-1559526324-4b87b5e36e44?auto=format&fit=crop&w=1200&h=300&q=72"><div class="slide-text"><h2>Servicio de Asesoría en Finanzas Personales</h2><p>Optimización patrimonial y planificación de capital de largo plazo.</p></div></div>
+        <div class="slide"><img src="https://images.unsplash.com/photo-1560518883-ce09059eeffa?auto=format&fit=crop&w=1200&h=300&q=72"><div class="slide-text"><h2>Servicio de Asesoría Inmobiliaria e Hipotecaria</h2><p>Intermediación técnica y corretaje ágil para compra de bienes.</p></div></div>
+        <div class="slide"><img src="https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=1200&h=300&q=72"><div class="slide-text"><h2>Servicio de Asesoría para Estudios y Maestrías</h2><p>Canalización de recursos educativos para potenciar tu perfil profesional.</p></div></div>
+        <div class="slide"><img src="https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?auto=format&fit=crop&w=1200&h=300&q=72"><div class="slide-text"><h2>Servicio de Asesoría en Seguros y Respaldo Patrimonial</h2><p>Mitigación técnica de riesgos para ti, tu familia y tu empresa.</p></div></div>
     </div>
 </div>
 """, unsafe_allow_html=True)
@@ -301,7 +286,7 @@ with col_izq:
         elif len(cedula) < 10 or not cedula.isdigit():
             st.error("⚠️ Documento de identidad no válido (Debe contener 10 números).")
         else:
-            guardar_lead(nombre, cedula, telefono, city=ciudad, product=producto_interes)
+            guardar_lead(nombre, cedula, telefono, ciudad, producto_interes)
             st.success("🎉 ¡Trámite ingresado con éxito en la plataforma Escala Finance & Insurance!")
             
             texto_ws = f"Hola Escala Finance & Insurance, he completado y autorizado mi pre-calificación en línea.\n\n" \
@@ -363,7 +348,7 @@ with col_der:
 st.write("---")
 
 # ==========================================
-# 6. INDICADORES ECONÓMICOS & REDES SOCIALES
+# 6. INDICADORES ECONÓMICOS
 # ==========================================
 st.markdown("### 📊 Indicadores Económicos Mundiales y Locales")
 m1, m2, m3, m4, m5 = st.columns(5)
@@ -375,32 +360,83 @@ m5.metric(label="🏦 BV Guayaquil", value="985.40", delta="-0.08%")
 
 st.write("---")
 
+# ==========================================
+# 7. MULTI-SLIDERS INTERACTIVOS (NOTICIAS, LINKEDIN Y YOUTUBE)
+# ==========================================
 col_noticias, col_linkedin, col_youtube = st.columns([1, 1, 1])
 
 with col_noticias:
-    st.markdown("### 📰 Actualidad y Economía")
+    st.markdown("### 📰 Actualidad Económica")
+    st.caption("Noticias clave del ecosistema financiero global y local:")
     st.markdown("""
-    * **Bloomberg:** *Bancos centrales evalúan ajustes de tasas de interés comerciales para el tercer trimestre.*
-    * **CNN Business:** *Mercados globales reaccionan al alza impulsados por el sector de tecnología e IA.*
-    * **Revista Ekos:** *Ecuador registra un incremento en solicitudes de microcréditos productivos corporativos.*
-    """)
+    <div class="slider-container">
+        <div class="slider-track-fast">
+            <div class="slide">
+                <img src="https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?auto=format&fit=crop&w=400&h=230&q=60">
+                <div class="slide-text"><h3>Bloomberg</h3><p>Bancos centrales evalúan ajustes de tasas de interés comerciales para el tercer trimestre.</p></div>
+            </div>
+            <div class="slide">
+                <img src="https://images.unsplash.com/photo-1590283603385-17ffb3a7f29f?auto=format&fit=crop&w=400&h=230&q=60">
+                <div class="slide-text"><h3>CNN Business</h3><p>Mercados globales reaccionan al alza impulsados por el sector de tecnología e IA.</p></div>
+            </div>
+            <div class="slide">
+                <img src="https://images.unsplash.com/photo-1526304640581-d334cdbbf45e?auto=format&fit=crop&w=400&h=230&q=60">
+                <div class="slide-text"><h3>Revista Ekos</h3><p>Ecuador registra un incremento en solicitudes de microcréditos productivos corporativos.</p></div>
+            </div>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
 
 with col_linkedin:
-    st.markdown("### 🔗 Publicaciones en LinkedIn")
-    st.markdown("Manténgase conectado con mis análisis de mercado, liderazgo y consejos corporativos de primera mano.")
-    st.write("")
-    st.link_button("🌐 Visitar Mi Perfil en LinkedIn", "https://linkedin.com/in/jonathan-paul-vaca-cruz-70b378b8")
+    st.markdown("### 🔗 Artículos en LinkedIn")
+    st.caption("Análisis y publicaciones destacadas de mi perfil profesional:")
+    st.markdown("""
+    <div class="slider-container">
+        <div class="slider-track-fast">
+            <div class="slide">
+                <img src="https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?auto=format&fit=crop&w=400&h=230&q=60">
+                <div class="slide-text"><h3>Publicación Destacada</h3><p>Estrategias de mitigación técnica de riesgos patrimoniales en Latinoamérica.</p></div>
+            </div>
+            <div class="slide">
+                <img src="https://images.unsplash.com/photo-1551836022-d5d88e9218df?auto=format&fit=crop&w=400&h=230&q=60">
+                <div class="slide-text"><h3>Liderazgo Financiero</h3><p>Cómo optimizar la estructura de liquidez corporativa mediante corretaje independiente.</p></div>
+            </div>
+            <div class="slide">
+                <img src="https://images.unsplash.com/photo-1600880292203-757bb62b4baf?auto=format&fit=crop&w=400&h=230&q=60">
+                <div class="slide-text"><h3>Planificación Familiar</h3><p>El rol de los seguros especializados en el blindaje de capitales de largo plazo.</p></div>
+            </div>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+    st.link_button("🌐 Visitar Mi Perfil en LinkedIn", "https://linkedin.com/in/jonathan-paul-vaca-cruz-70b378b8", use_container_width=True)
 
 with col_youtube:
     st.markdown("### 🎥 Educación Financiera")
-    st.caption("Material audiovisual extraído de mi canal de YouTube:")
-    st.write("")
-    st.link_button("📺 Ir a mi Canal de YouTube", "http://www.youtube.com/@jonathanvaca3000")
+    st.caption("Cápsulas de aprendizaje y videos clave de mi canal:")
+    st.markdown("""
+    <div class="slider-container">
+        <div class="slider-track-fast">
+            <div class="slide">
+                <img src="https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=400&h=230&q=60">
+                <div class="slide-text"><h3>Video: Crédito Inmobiliario</h3><p>Guía técnica paso a paso para pre-calificar con éxito a un financiamiento hipotecario.</p></div>
+            </div>
+            <div class="slide">
+                <img src="https://images.unsplash.com/photo-1542744094-3a31f103e35f?auto=format&fit=crop&w=400&h=230&q=60">
+                <div class="slide-text"><h3>Video: Financiamiento de Maestrías</h3><p>Cómo canalizar fondos para potenciar tu perfil profesional sin descapitalizarte.</p></div>
+            </div>
+            <div class="slide">
+                <img src="https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=400&h=230&q=60">
+                <div class="slide-text"><h3>Video: Análisis de Scoring</h3><p>Lo que las firmas aliadas analizan en tu buró crediticio al tramitar una línea de consumo.</p></div>
+            </div>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+    st.link_button("📺 Ir a mi Canal de YouTube", "http://www.youtube.com/@jonathanvaca3000", use_container_width=True)
 
 st.write("---")
 
 # ==========================================
-# 7. TESTIMONIOS CON AVATARES
+# 8. TESTIMONIOS CON AVATARES
 # ==========================================
 st.markdown("### 💬 Opiniones y Testimonios de Clientes")
 st.write("")
@@ -446,7 +482,7 @@ with t3:
 st.write("---")
 
 # ==========================================
-# 8. PANEL DE CONTROL INTERNO (DASHBOARD)
+# 9. PANEL DE CONTROL INTERNO (DASHBOARD)
 # ==========================================
 st.markdown("### 🔒 Panel de Control Interno")
 
