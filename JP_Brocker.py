@@ -172,11 +172,11 @@ st.markdown("""
     .slide-text h2, .slide-text h3 {
         color: #D4AF37 !important;
         margin: 0;
-        font-size: 1.5rem;
+        font-size: 1.35rem;
     }
     .slide-text p {
         margin: 5px 0 0 0;
-        font-size: 1rem;
+        font-size: 0.95rem;
         font-weight: bold;
         color: #FFFFFF;
     }
@@ -389,26 +389,27 @@ with col_noticias:
 
 with col_linkedin:
     st.markdown("### 🔗 Artículos en LinkedIn")
-    st.caption("Análisis y publicaciones destacadas de mi perfil profesional:")
+    st.caption("Haga clic en cualquiera de los slides para abrir el artículo original:")
+    # Multi-slide dinámico interactivo con sus 3 publicaciones reales vinculadas por enlaces directos
     st.markdown("""
     <div class="slider-container">
         <div class="slider-track-fast">
-            <div class="slide">
+            <a class="slide" href="https://www.linkedin.com/posts/jonathan-paul-vaca-cruz-70b378b8_estamos-delegando-nuestra-visi%C3%B3n-o-solo-share-7477466894040702976-aafK/" target="_blank">
                 <img src="https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?auto=format&fit=crop&w=400&h=230&q=60">
-                <div class="slide-text"><h3>Publicación Destacada</h3><p>Estrategias de mitigación técnica de riesgos patrimoniales en Latinoamérica.</p></div>
-            </div>
-            <div class="slide">
+                <div class="slide-text"><h3>Liderazgo y Gestión</h3><p>¿Estamos delegando nuestra visión o solo el trabajo administrativo?</p></div>
+            </a>
+            <a class="slide" href="https://www.linkedin.com/posts/jonathan-paul-vaca-cruz-70b378b8_ugcPost-7474858018564870144-UZ2h/" target="_blank">
                 <img src="https://images.unsplash.com/photo-1551836022-d5d88e9218df?auto=format&fit=crop&w=400&h=230&q=60">
-                <div class="slide-text"><h3>Liderazgo Financiero</h3><p>Cómo optimizar la estructura de liquidez corporativa mediante corretaje independiente.</p></div>
-            </div>
-            <div class="slide">
+                <div class="slide-text"><h3>Estrategia Profesional</h3><p>Análisis técnico sobre la optimización del ecosistema corporativo.</p></div>
+            </a>
+            <a class="slide" href="https://www.linkedin.com/posts/activity-7383934863373971456-Xp9F" target="_blank">
                 <img src="https://images.unsplash.com/photo-1600880292203-757bb62b4baf?auto=format&fit=crop&w=400&h=230&q=60">
-                <div class="slide-text"><h3>Planificación Familiar</h3><p>El rol de los seguros especializados en el blindaje de capitales de largo plazo.</p></div>
-            </div>
+                <div class="slide-text"><h3>Actividad y Actualidad</h3><p>Últimas novedades, reflexiones del mercado y pulso financiero institucional.</p></div>
+            </a>
         </div>
     </div>
     """, unsafe_allow_html=True)
-    st.link_button("🌐 Visitar Mi Perfil en LinkedIn", "https://linkedin.com/in/jonathan-paul-vaca-cruz-70b378b8", use_container_width=True)
+    st.link_button("🌐 Visitar Mi Perfil Completo en LinkedIn", "https://linkedin.com/in/jonathan-paul-vaca-cruz-70b378b8", use_container_width=True)
 
 with col_youtube:
     st.markdown("### 🎥 Educación Financiera")
@@ -418,7 +419,7 @@ with col_youtube:
         <div class="slider-track-fast">
             <div class="slide">
                 <img src="https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=400&h=230&q=60">
-                <div class="slide-text"><h3>Video: Crédito Inmobiliario</h3><p>Guía técnica paso a paso para pre-calificar con éxito a un financiamiento hipotecario.</p></div>
+                <div class="slide-text">Campañas Educativas<h3>Video: Crédito Inmobiliario</h3><p>Guía técnica paso a paso para pre-calificar con éxito a un financiamiento hipotecario.</p></div>
             </div>
             <div class="slide">
                 <img src="https://images.unsplash.com/photo-1542744094-3a31f103e35f?auto=format&fit=crop&w=400&h=230&q=60">
