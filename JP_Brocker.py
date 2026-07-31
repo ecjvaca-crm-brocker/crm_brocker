@@ -78,13 +78,13 @@ init_db()
 # ==========================================
 class PDFConsultoria(FPDF):
     def header(self):
-        # Cabecera Institucional
+        # Cabecera Institucional (Sin caracteres especiales para evitar errores de codificación)
         self.set_font("helvetica", "B", 10)
         self.set_text_color(10, 37, 64)
-        self.cell(0, 8, "ESCALA CONSULTING • METODOLOGÍA MCKINSEY & COMPANY", 0, 1, "L")
+        self.cell(0, 8, "ESCALA CONSULTING - METODOLOGIA MCKINSEY & COMPANY", 0, 1, "L")
         self.set_font("helvetica", "", 8)
         self.set_text_color(120, 120, 120)
-        self.cell(0, 5, "Informe Ejecutivo de Diagnóstico y Madurez Empresarial", 0, 1, "L")
+        self.cell(0, 5, "Informe Ejecutivo de Diagnostico y Madurez Empresarial", 0, 1, "L")
         self.set_draw_color(212, 175, 55) # Dorado ejecutivo
         self.set_line_width(0.8)
         self.line(10, 22, 200, 22)
@@ -94,7 +94,7 @@ class PDFConsultoria(FPDF):
         self.set_y(-15)
         self.set_font("helvetica", "I", 8)
         self.set_text_color(150, 150, 150)
-        self.cell(0, 10, f"Página {self.page_no()}/{{nb}} | Uso Exclusivo - Escala Finance & Insurance", 0, 0, "C")
+        self.cell(0, 10, f"Pagina {self.page_no()}/{{nb}} | Uso Exclusivo - Escala Finance & Insurance", 0, 0, "C")
 
 def generar_pdf_mckinsey(fila_client):
     def buscar_col(keywords, defecto="No especificado"):
