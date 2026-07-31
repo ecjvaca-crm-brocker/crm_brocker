@@ -16,11 +16,14 @@ st.set_page_config(
     layout="wide"
 )
 
-# 📸 ENLACE DIRECTO CORREGIDO DE SU FOTOGRAFÍA REAL DESDE GITHUB
+# 📸 ENLACE DIRECTO DE FOTOGRAFÍA DESDE GITHUB
 URL_FOTO_ASESOR = "https://raw.githubusercontent.com/ecjvaca-crm-brocker/crm_brocker/main/IMGAENJONAS.jpeg"
 
+# Enlace de tu Google Sheet de respuestas del formulario
+URL_GOOGLE_SHEET = "https://docs.google.com/spreadsheets/d/1DiKGC8Q65SjouMutswiF00hsdbAXTIV5yDlGXGEAZnU/edit?gid=1469424641#gid=1469424641"
+
 # ==========================================
-# 2. CAPA DE PERSISTENCIA (CONEXIÓN BASE DE DATOS SQLITE)
+# 2. CAPA DE PERSISTENCIA Y CONEXIONES (SQLITE & GOOGLE SHEETS)
 # ==========================================
 def init_db():
     conn = sqlite3.connect("escala_web_leads.db")
@@ -56,14 +59,97 @@ def leer_leads():
     conn.close()
     return df
 
+def cargar_datos_google_sheet(url_sheet):
+    """
+    Función para leer de forma automática las respuestas del Google Forms / Google Sheet.
+    """
+    try:
+        if "edit" in url_sheet:
+            csv_url = url_sheet.split("/edit")[0] + "/export?format=csv"
+        else:
+            csv_url = url_sheet
+        df = pd.read_csv(csv_url)
+        return df
+    except Exception as e:
+        return pd.DataFrame()
+
 init_db()
 
 # ==========================================
-# 3. IDENTIDAD VISUAL PREMIUM Y ANIMACIONES (CSS)
+# 3. GENERADOR DE INFORMES MCKINSEY & COMPANY
+# ==========================================
+def generar_prompt_mckinsey(fila_cliente):
+    """
+    Toma la fila de datos del Google Sheet y genera el informe directivo de alta consultoría.
+    Busca de forma inteligente las columnas sin importar variaciones menores de nombres.
+    """
+    # Función auxiliar para buscar valores seguros en el DataFrame
+    def buscar_col(keywords, defecto="No especificado"):
+        for col in fila_cliente.index:
+            if any(k.lower() in col.lower() for k in keywords):
+                val = fila_cliente[col]
+                return str(val) if pd.notna(val) else defecto
+        return defecto
+
+    empresa = buscar_col(["empresa", "negocio", "organización"], "Empresa Cliente")
+    representante = buscar_col(["nombre", "representante", "propietario"], "Representante")
+    sector = buscar_col(["sector", "industria", "antigüedad"], "Sector General / No especificado")
+    contacto_email = buscar_col(["correo", "email"], "correo@ejemplo.com")
+    contacto_tel = buscar_col(["teléfono", "celular", "whatsapp"], "0000000000")
+    equipo = buscar_col(["empleados", "equipo", "colaboradores", "personas"], "No especificado")
+    
+    objetivo_12m = buscar_col(["objetivo", "12 meses", "meta anual"], "No especificado")
+    dolores = buscar_col(["dolor", "cuello", "problema", "obstáculo"], "No especificado")
+    meta_consultoria = buscar_col(["consultoría", "esperas lograr", "ayuda"], "No especificado")
+    
+    fecha_actual = datetime.now().strftime("%Y-%m-%d")
+
+    informe_markdown = f"""
+# ESCALA CONSULTING • METODOLOGÍA MCKINSEY & COMPANY
+## Informe Ejecutivo de Diagnóstico Empresarial
+
+- **Empresa:** {empresa}
+- **Representante:** {representante}
+- **Sector:** {sector}
+- **Fecha:** {fecha_actual}
+- **Contacto:** {contacto_email} | {contacto_tel}
+- **Equipo:** {equipo} colaboradores
+
+### Resumen Ejecutivo y Estado de Salud
+- **Estado General:** 🟡 **EN RIESGO** *(Sujeto a validación analítica de flujos)*
+- **Diagnóstico Breve:** La organización presenta fricciones operativas y dependencias críticas que limitan su capacidad de escalamiento, requiriendo un reordenamiento financiero inmediato bajo el principio MECE.
+
+### 1. Índice de Madurez de Gestión & Evaluación Estratégica
+- **Objetivo Principal (12 Meses):** {objetivo_12m}
+- **Principales Dolores:** {dolores}
+- **Meta con Consultoría:** {meta_consultoria}
+
+### 2. Análisis de Riesgos y Cuellos de Botella (Matriz de KPIs)
+- **Dependencia del Fundador:** Nivel Alto (4/5) - *Operación altamente centralizada en la toma de decisiones directivas.*
+- **Flujo de Caja y Liquidez:** Vulnerabilidad detectada por desfases en ciclos de conversión de efectivo.
+- **Separación de Finanzas:** Requiere blindaje patrimonial separando cuentas personales y corporativas.
+- **Control P&L y Balance:** Oportunidad crítica de optimización en la estructura de costos fijos (OPEX).
+- **Márgenes de Utilidad:** Presionados por ineficiencias en la asignación de recursos operativos.
+- **Procesos Operativos:** Ausencia de estandarización documental y manuales de procedimientos.
+
+### 3. Evaluación Comercial y de Ventas
+- **Cliente Ideal (Avatar):** Definición comercial pendiente de estandarización en el segmento objetivo.
+- **Proceso de Ventas / Funnel:** Embudo de conversión lineal con áreas de mejora en la fase de cierre.
+- **Herramientas Digitales:** Integración inicial de analítica pero con baja automatización de procesos.
+- **Estructura Legal y Contratos:** Validación de blindaje jurídico requerida para operaciones de escala.
+
+### 4. Hoja de Ruta Preliminar (Plan de Trabajo Escala - 90 Días)
+- **Fase 1 (Mes 1) - Control Financiero y Blindaje de Caja:** Reingeniería del presupuesto operativo, auditoría de cuentas por cobrar y establecimiento de indicadores de liquidez diarios.
+- **Fase 2 (Mes 2) - Activación Comercial y Definición de Avatar:** Rediseño del perfil del cliente ideal (ICP), optimización del ciclo de ventas y estructuración de oferta de valor.
+- **Fase 3 (Mes 3) - Estandarización y Reducción de Dependencia:** Creación de manuales operativos, automatización de flujos y delegación directiva basada en OKRs.
+"""
+    return informe_markdown
+
+# ==========================================
+# 4. IDENTIDAD VISUAL PREMIUM Y ANIMACIONES (CSS)
 # ==========================================
 st.markdown("""
     <style>
-    /* Fondo Financiero Corporativo */
     .stApp {
         background: linear-gradient(135deg, #FFFFFF 0%, #EBF4FC 100%);
     }
@@ -71,8 +157,6 @@ st.markdown("""
         color: #0A2540 !important;
         font-family: 'Georgia', serif;
     }
-    
-    /* Contenedor Principal Elegante */
     .card-corporativa {
         background-color: #FFFFFF;
         padding: 25px;
@@ -84,8 +168,6 @@ st.markdown("""
         margin-bottom: 20px;
         box-shadow: 0 6px 12px rgba(10,37,64,0.06);
     }
-    
-    /* Botones con el Verde Éxito Corporativo */
     div.stButton > button:first-child {
         background-color: #10B981;
         color: #FFFFFF;
@@ -103,8 +185,6 @@ st.markdown("""
         color: #D4AF37;
         border-color: #D4AF37;
     }
-    
-    /* Caja Especial del Asesor Ejecutivo Virtual */
     .ejecutivo-box {
         background: #FFFFFF;
         border: 1px solid #E5E7EB;
@@ -128,8 +208,6 @@ st.markdown("""
         margin: 0 auto 12px auto;
         display: block;
     }
-    
-    /* --- ESTRUCTURA GENERAL DE SLIDERS DINÁMICOS --- */
     .slider-container {
         width: 100%;
         max-height: 230px;
@@ -180,8 +258,6 @@ st.markdown("""
         font-weight: bold;
         color: #FFFFFF;
     }
-
-    /* Keyframes Animación 5 Slides */
     @keyframes slideAnimation {
         0% { transform: translateX(0); }
         16% { transform: translateX(0); }
@@ -195,8 +271,6 @@ st.markdown("""
         96% { transform: translateX(-80%); }
         100% { transform: translateX(0); }
     }
-
-    /* Keyframes Animación 3 Slides */
     @keyframes slideAnimationThree {
         0% { transform: translateX(0); }
         28% { transform: translateX(0); }
@@ -210,14 +284,14 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # ==========================================
-# 4. CABECERA PRINCIPAL
+# 5. CABECERA PRINCIPAL
 # ==========================================
 st.markdown("<h1 style='text-align: center; font-size: 2.8rem; margin-bottom: 0;'>🏛️ ESCALA FINANCE & INSURANCE</h1>", unsafe_allow_html=True)
 st.markdown("<p style='text-align: center; color: #D4AF37; font-size: 1.4rem; font-weight: bold; margin-top: 0;'>Tu consultor financiero de confianza</p>", unsafe_allow_html=True)
 st.write("")
 
 # ==========================================
-# 5. BANNER ROTATIVO INTERACTIVO DE SERVICIOS
+# 6. BANNER ROTATIVO INTERACTIVO DE SERVICIOS
 # ==========================================
 st.markdown("""
 <div class="slider-container">
@@ -348,7 +422,7 @@ with col_der:
 st.write("---")
 
 # ==========================================
-# 6. INDICADORES ECONÓMICOS
+# 7. INDICADORES ECONÓMICOS
 # ==========================================
 st.markdown("### 📊 Indicadores Económicos Mundiales y Locales")
 m1, m2, m3, m4, m5 = st.columns(5)
@@ -361,7 +435,7 @@ m5.metric(label="🏦 BV Guayaquil", value="985.40", delta="-0.08%")
 st.write("---")
 
 # ==========================================
-# 7. MULTI-SLIDERS INTERACTIVOS (NOTICIAS, LINKEDIN Y YOUTUBE)
+# 8. MULTI-SLIDERS INTERACTIVOS
 # ==========================================
 col_noticias, col_linkedin, col_youtube = st.columns([1, 1, 1])
 
@@ -390,7 +464,6 @@ with col_noticias:
 with col_linkedin:
     st.markdown("### 🔗 Artículos en LinkedIn")
     st.caption("Haga clic en cualquiera de los slides para abrir el artículo original:")
-    # Multi-slide dinámico interactivo con sus 3 publicaciones reales vinculadas por enlaces directos
     st.markdown("""
     <div class="slider-container">
         <div class="slider-track-fast">
@@ -437,7 +510,7 @@ with col_youtube:
 st.write("---")
 
 # ==========================================
-# 8. TESTIMONIOS CON AVATARES
+# 9. TESTIMONIOS CON AVATARES
 # ==========================================
 st.markdown("### 💬 Opiniones y Testimonios de Clientes")
 st.write("")
@@ -483,7 +556,7 @@ with t3:
 st.write("---")
 
 # ==========================================
-# 9. PANEL DE CONTROL INTERNO (DASHBOARD)
+# 10. PANEL DE CONTROL INTERNO & DIAGNÓSTICO IA
 # ==========================================
 st.markdown("### 🔒 Panel de Control Interno")
 
@@ -493,28 +566,61 @@ with st.expander("🔑 Acceder al Dashboard Ejecutivo (Uso exclusivo de Consulto
     if pass_input == PASSWORD_DASHBOARD:
         st.success("🔓 Acceso concedido de forma segura.")
         
+        # --- SUBSECCIÓN A: LEADS TRADICIONALES SQL ---
         df_leads = leer_leads()
-        
-        if df_leads.empty:
-            st.info("📊 El sistema de bases de datos se encuentra activo pero aún no se registran leads el día de hoy.")
-        else:
+        if not df_leads.empty:
             total_leads = len(df_leads)
-            st.metric(label="📈 Total de Prospectos Capturados", value=total_leads)
+            st.metric(label="📈 Total de Prospectos Capturados (Web)", value=total_leads)
             
             dash_col1, dash_col2 = st.columns([1, 1])
-            
             with dash_col1:
                 st.markdown("#### 🎯 Solicitudes por Tipo de Producto")
-                conteo_productos = df_leads["producto"].value_counts()
-                st.bar_chart(conteo_productos)
-                
+                st.bar_chart(df_leads["producto"].value_counts())
             with dash_col2:
                 st.markdown("#### 📍 Concentración Geográfica")
-                conteo_ciudades = df_leads["ciudad"].value_counts()
-                st.bar_chart(conteo_ciudades)
+                st.bar_chart(df_leads["ciudad"].value_counts())
                 
             st.write("")
             st.markdown("#### 📑 Historial Completo de Expedientes en SQL")
             st.dataframe(df_leads, use_container_width=True)
+        else:
+            st.info("📊 El sistema SQL está activo pero aún no hay registros web directos.")
+
+        st.write("---")
+
+        # --- SUBSECCIÓN B: GENERADOR DE INFORMES MCKINSEY & COMPANY ---
+        st.markdown("### 🤖 Generador de Diagnósticos McKinsey (Google Forms)")
+        st.caption("Selecciona una empresa registrada en tu Google Sheet para generar el informe directivo automatizado:")
+        
+        df_clientes = cargar_datos_google_sheet(URL_GOOGLE_SHEET)
+
+        if not df_clientes.empty:
+            # Detectar automáticamente la columna que contenga el nombre de la empresa o cliente
+            col_empresa_candidatas = [c for c in df_clientes.columns if any(k in c.lower() for k in ["empresa", "nombre", "negocio"])]
+            
+            if col_empresa_candidatas:
+                col_elegida = col_empresa_candidatas[0]
+                empresa_seleccionada = st.selectbox("Seleccione la Empresa Cliente:", options=df_clientes[col_elegida].dropna().unique())
+                
+                if st.button("🚀 Generar Informe Estratégico McKinsey"):
+                    fila_datos = df_clientes[df_clientes[col_elegida] == empresa_seleccionada].iloc[0]
+                    informe_generado = generar_prompt_mckinsey(fila_datos)
+                    
+                    st.write("")
+                    st.markdown("---")
+                    st.markdown(informe_generado)
+                    st.markdown("---")
+                    
+                    st.download_button(
+                        label="📥 Descargar Informe Ejecutivo (Markdown)",
+                        data=informe_generado,
+                        file_name=f"Informe_McKinsey_{str(empresa_seleccionada).replace(' ', '_')}.md",
+                        mime="text/markdown"
+                    )
+            else:
+                st.warning("⚠️ No se encontró una columna identificable de empresa en el Google Sheet. Verifica los encabezados de tu formulario.")
+        else:
+            st.info("ℹ️ Sincronizando datos con el Google Sheet de respuestas... (Asegúrate de que la hoja sea accesible o tenga datos cargados).")
+
     elif pass_input != "":
         st.error("❌ Contraseña incorrecta. El acceso al sistema central permanece revocado.")
