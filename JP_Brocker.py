@@ -3,9 +3,12 @@ import urllib.parse
 import sqlite3
 import pandas as pd
 import numpy as np
-import matplotlib.pyplot as plt
 import tempfile
 import os
+from datetime import datetime
+from io import BytesIO
+from fpdf import FPDF
+import matplotlib.pyplot as plt
 
 # ==========================================
 # 1. CONFIGURACIONES INICIALES GENERALES
@@ -164,12 +167,10 @@ def generar_pdf_mckinsey(fila_client):
     pdf.set_text_color(10, 37, 64)
     pdf.cell(0, 6, "1. Indice de Madurez de Gestion (Maturity Assessment)", 0, 1, "L")
     
-    # Generar e incrustar el gráfico de radar temporalmente en el PDF
     ruta_radar = generar_grafico_radar()
     pdf.image(ruta_radar, x=65, y=pdf.get_y(), w=75)
     pdf.ln(78)
     
-    # Limpiar archivo temporal de imagen
     if os.path.exists(ruta_radar):
         os.remove(ruta_radar)
 
@@ -663,100 +664,21 @@ with t2:
     with txt2:
         st.markdown("""
         <div style="background-color: #FFFFFF; padding: 12px; border-radius: 6px; border-left: 3px solid #D4AF37; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
-            "Gracias a su asesoría estratégica logré estructurar el financiamiento de mi Maestría sin comprometer mi liquidez."<br>
-            <small style='color:#718096;'><strong>- Mgs. Lorena P. (Arquitecta)</strong></small>
+            "El acompañamiento en la estructuración de capital de trabajo salvó la operación trimestral de nuestra empresa."<br>
+            <small style='color:#718096;'><strong>- Ing. Marcelo P. (Gerente General)</strong></small>
         </div>
         """, unsafe_allow_html=True)
 
 with t3:
     ft3, txt3 = st.columns([1, 3])
     with ft3:
-        st.image("https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=150&h=150&q=80", use_container_width=True)
+        st.image("https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=150&h=150&q=80", use_container_width=True)
     with txt3:
         st.markdown("""
         <div style="background-color: #FFFFFF; padding: 12px; border-radius: 6px; border-left: 3px solid #D4AF37; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
-            "Excelente servicio corporativo de corretaje para la emisión de la póliza de seguro vehicular de nuestra flota."<br>
-            <small style='color:#718096;'><strong>- Ing. Javier G. (Gerente General)</strong></small>
+            "Canalizar mi financiamiento educativo para la maestría en el exterior fue transparente y muy rápido gracias a Escala."<br>
+            <small style='color:#718096;'><strong>- Mtr. Valeria S. (Consultora)</strong></small>
         </div>
         """, unsafe_allow_html=True)
 
 st.write("---")
-
-# ==========================================
-# 10. PANEL DE CONTROL INTERNO & DIAGNÓSTICO IA
-# ==========================================
-st.markdown("### 🔒 Panel de Control Interno")
-
-with st.expander("🔑 Acceder al Dashboard Ejecutivo (Uso exclusivo de Consultores)"):
-    pass_input = st.text_input("Ingrese la clave de seguridad para visualizar métricas:", type="password", key="pass_dash")
-    
-    if pass_input == PASSWORD_DASHBOARD:
-        st.success("🔓 Acceso concedido de forma segura.")
-        
-        # --- SUBSECCIÓN A: LEADS TRADICIONALES SQL ---
-        df_leads = leer_leads()
-        if not df_leads.empty:
-            total_leads = len(df_leads)
-            st.metric(label="📈 Total de Prospectos Capturados (Web)", value=total_leads)
-            
-            dash_col1, dash_col2 = st.columns([1, 1])
-            with dash_col1:
-                st.markdown("#### 🎯 Solicitudes por Tipo de Producto")
-                st.bar_chart(df_leads["producto"].value_counts())
-            with dash_col2:
-                st.markdown("#### 📍 Concentración Geográfica")
-                st.bar_chart(df_leads["ciudad"].value_counts())
-                
-            st.write("")
-            st.markdown("#### 📑 Historial Completo de Expedientes en SQL")
-            st.dataframe(df_leads, use_container_width=True)
-        else:
-            st.info("📊 El sistema SQL está activo pero aún no hay registros web directos.")
-
-        st.write("---")
-
-        # --- SUBSECCIÓN B: GENERADOR DE INFORMES PDF MCKINSEY ---
-        st.markdown("### 🤖 Generador de Diagnósticos McKinsey (Exportable a PDF)")
-        st.caption("Selecciona una empresa registrada en tu Google Sheet para generar el informe directivo institucional:")
-        
-        df_clientes = cargar_datos_google_sheet(URL_GOOGLE_SHEET)
-
-        if not df_clientes.empty:
-            columnas_disponibles = list(df_clientes.columns)
-            sugerencia_index = 0
-            for i, col in enumerate(columnas_disponibles):
-                if any(k in col.lower() for k in ["empresa", "nombre", "negocio", "razon"]):
-                    sugerencia_index = i
-                    break
-
-            col_elegida = st.selectbox(
-                "Selecciona la columna de tu Google Sheet que contiene el Nombre de la Empresa o Cliente:", 
-                options=columnas_disponibles,
-                index=sugerencia_index
-            )
-            
-            if col_elegida:
-                empresas_unicas = df_clientes[col_elegida].dropna().unique()
-                
-                if len(empresas_unicas) > 0:
-                    empresa_seleccionada = st.selectbox("Selecciona la Empresa Específica:", options=empresas_unicas)
-                    
-                    if st.button("🚀 Generar Informe Estratégico McKinsey (PDF)"):
-                        fila_datos = df_clientes[df_clientes[col_elegida] == empresa_seleccionada].iloc[0]
-                        pdf_buffer = generar_pdf_mckinsey(fila_datos)
-                        
-                        st.success("✅ ¡Informe Ejecutivo de 3 páginas estructurado y listo para descargar!")
-                        
-                        st.download_button(
-                            label="📥 Descargar Informe Ejecutivo en Formato PDF (Corporativo)",
-                            data=pdf_buffer,
-                            file_name=f"Informe_McKinsey_{str(empresa_seleccionada).replace(' ', '_')}.pdf",
-                            mime="application/pdf"
-                        )
-                else:
-                    st.warning("⚠️ La columna seleccionada no contiene datos de empresas.")
-        else:
-            st.error("❌ No se pudo leer el Google Sheet. Verifica que el enlace sea accesible o público.")
-
-    elif pass_input != "":
-        st.error("❌ Contraseña incorrecta. El acceso al sistema central permanece revocado.")
