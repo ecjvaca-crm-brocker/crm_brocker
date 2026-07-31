@@ -96,107 +96,152 @@ class PDFConsultoria(FPDF):
         self.set_text_color(150, 150, 150)
         self.cell(0, 10, f"Pagina {self.page_no()}/{{nb}} | Uso Exclusivo - Escala Finance & Insurance", 0, 0, "C")
 
-def generar_pdf_mckinsey(fila_datos):
-    pdf = PDFConsultoria() # Usando la clase personalizada con cabecera y pie de página
+def generar_pdf_mckinsey(fila_client):
+    def buscar_col(keywords, defecto="No especificado"):
+        for col in fila_client.index:
+            if any(k.lower() in col.lower() for k in keywords):
+                val = fila_client[col]
+                return str(val) if pd.notna(val) else defecto
+        return defecto
+
+    empresa = buscar_col(["empresa", "negocio", "organización"], "Escala Consulting (Kinetic Motor Studio)")
+    representante = buscar_col(["nombre", "representante", "propietario"], "Jonathan Vaca")
+    
+    pdf = PDFConsultoria()
     pdf.alias_nb_pages()
     pdf.set_auto_page_break(auto=True, margin=15)
     
     # ---------------------------------------------------------
-    # PÁGINA 1: Portada Ejecutiva, Resumen y Gráfico de Radar
+    # PÁGINA 1: Portada Ejecutiva, Resumen y Estructura de Madurez
     # ---------------------------------------------------------
     pdf.add_page()
     
-    # Títulos e información de la cuenta
     pdf.set_font("helvetica", "B", 14)
     pdf.set_text_color(10, 37, 64)
     pdf.cell(0, 8, "Informe Ejecutivo de Evaluacion de Cuenta", 0, 1, "L")
     
-    # ... [Código para colocar los datos del cliente: Jonathan Vaca / Escala Consulting] ...
+    pdf.set_font("helvetica", "B", 9)
+    pdf.set_text_color(100, 100, 100)
+    pdf.cell(0, 5, f"CLIENTE / REPRESENTANTE: {representante}", 0, 1, "L")
+    pdf.cell(0, 5, f"RAZON SOCIAL / COMERCIAL: {empresa}", 0, 1, "L")
+    pdf.cell(0, 5, f"FECHA DE EMISION: {datetime.now().strftime('%d de %B, %Y')}", 0, 1, "L")
+    pdf.ln(5)
     
-    # Resumen Ejecutivo
     pdf.set_font("helvetica", "B", 10)
+    pdf.set_text_color(10, 37, 64)
     pdf.cell(0, 6, "Resumen Ejecutivo:", 0, 1, "L")
     pdf.set_font("helvetica", "", 9)
-    pdf.multi_cell(0, 5, "La empresa presenta una condicion de Vulnerabilidad Estructural Critica (Indice de Salud de Gestion: 28/100). El diagnostico revela una alta dependencia operativa del fundador y una tension severa en la liquidez a corto plazo...")
-    pdf.ln(4)
+    pdf.set_text_color(50, 50, 50)
+    pdf.multi_cell(0, 5, "La empresa presenta una condicion de Vulnerabilidad Estructural Critica (Indice de Salud de Gestion: 28/100). El diagnostico revela una alta dependencia operativa del fundador y una tension severa en la liquidez a corto plazo, amenazando la sostenibilidad del negocio y obstaculizando la meta estrategica de alcanzar el punto de equilibrio financiero con 40% de rentabilidad neta.")
+    pdf.ln(6)
     
-    # Sección 1: Índice de Madurez y Gráfico de Radar
     pdf.set_font("helvetica", "B", 11)
+    pdf.set_text_color(10, 37, 64)
     pdf.cell(0, 6, "1. Indice de Madurez de Gestion (Maturity Assessment)", 0, 1, "L")
+    pdf.set_font("helvetica", "", 8.5)
+    pdf.set_text_color(50, 50, 50)
+    pdf.multi_cell(0, 4, "Evaluacion multidimensional bajo criterios de consultoria estrategica internacional (Framework McKinsey 7S adaptado a PyMEs), midiendo la robustez de los cuatro pilares fundamentales del negocio:")
+    pdf.ln(5)
+
+    pdf.set_font("helvetica", "B", 8)
+    pdf.set_fill_color(10, 37, 64)
+    pdf.set_text_color(255, 255, 255)
+    pdf.cell(35, 6, "Pilar Estrategico", 1, 0, "C", True)
+    pdf.cell(75, 6, "Variable Evaluada", 1, 0, "C", True)
+    pdf.cell(25, 6, "Puntuacion", 1, 0, "C", True)
+    pdf.cell(45, 6, "Estado Tecnico", 1, 1, "C", True)
+
     pdf.set_font("helvetica", "", 8)
-    pdf.multi_cell(0, 4, "Evaluacion multidimensional bajo criterios de consultoria estrategica internacional (Framework McKinsey 7S adaptado a PyMEs):")
+    pdf.set_text_color(0, 0, 0)
     
-    # Aquí es donde insertas la imagen del gráfico de radar generado previamente con matplotlib
-    # pdf.image("ruta_grafico_radar.png", x=55, y=pdf.get_y()+2, w=100)
-    pdf.ln(105) # Espacio para el gráfico
+    datos_tabla = [
+        ("Comercial", "Embudo de ventas & Definicion de Avatar", "35%", "Incipiente / Intuitivo"),
+        ("Financiero", "Flujo de caja, P&L & Separacion patrimonial", "20%", "Critico / Hemorragia"),
+        ("Operativo", "Dependencia del fundador & Procesos", "15%", "Colapso por Autoempleo"),
+        ("Legal & Gobierno", "Tributacion, Contratos & Activos", "40%", "Riesgo Moderado")
+    ]
     
-    # Tabla resumen de pilares en la página 1
-    # ... [Código para dibujar la tabla de Comercial y Finanzas] ...
-    
+    for pilar, var, punt, estado in datos_tabla:
+        pdf.cell(35, 6, pilar, 1, 0, "L")
+        pdf.cell(75, 6, var, 1, 0, "L")
+        pdf.cell(25, 6, punt, 1, 0, "C")
+        pdf.cell(45, 6, estado, 1, 1, "C")
+
     # ---------------------------------------------------------
     # PÁGINA 2: Análisis Técnico por Pilares (Diagnóstico Profundo)
     # ---------------------------------------------------------
     pdf.add_page()
     
     pdf.set_font("helvetica", "B", 11)
+    pdf.set_text_color(10, 37, 64)
     pdf.cell(0, 6, "2. Analisis Tecnico por Pilares (Diagnostico Profundo)", 0, 1, "L")
+    pdf.ln(2)
     
     pdf.set_font("helvetica", "B", 9)
     pdf.cell(0, 5, "A. Pilar Financiero & Control de Caja", 0, 1, "L")
     pdf.set_font("helvetica", "", 8.5)
-    pdf.multi_cell(0, 4, "Se detecta una mezcla critica entre el patrimonio personal del fundador y las finanzas operativas...")
-    pdf.ln(3)
-    
-    pdf.set_font("helvetica", "B", 9)
-    pdf.cell(0, 5, "B. Pilar Comercial & Estrategia de Mercado", 0, 1, "L")
-    pdf.set_font("helvetica", "", 8.5)
-    pdf.multi_cell(0, 4, "El modelo de adquisicion descansa enteramente en la intuicion comercial...")
-    pdf.ln(3)
-    
-    pdf.set_font("helvetica", "B", 9)
-    pdf.cell(0, 5, "C. Pilar Operativo & Eficiencia de Procesos", 0, 1, "L")
-    pdf.set_font("helvetica", "", 8.5)
-    pdf.multi_cell(0, 4, "El negocio exhibe el nivel maximo de dependencia operativa del fundador (5/5)...")
-    pdf.ln(3)
-    
-    pdf.set_font("helvetica", "B", 9)
-    pdf.cell(0, 5, "D. Pilar Legal & Gobierno Corporativo", 0, 1, "L")
-    pdf.set_font("helvetica", "", 8.5)
-    pdf.multi_cell(0, 4, "Se identifican pendientes en obligaciones tributarias y acuerdos de palabra...")
+    pdf.set_text_color(50, 50, 50)
+    pdf.multi_cell(0, 4, "Se detecta una mezcla critica entre el patrimonio personal del fundador y las finanzas operativas de la compania, lo que distorsiona la visibilidad real de la rentabilidad. La empresa sufre de escasez recurrente de liquidez a corto plazo (\"cash crunch\") debido a la ausencia de un presupuesto de caja proyectado a 13 semanas y a la falta de revision mensual de Estados de Resultados (P&L) y Balance General. Sin conocer el margen de contribucion real por servicio, la meta de alcanzar un 40% de rentabilidad neta es matematicamente inviable en el corto plazo.")
     pdf.ln(4)
     
+    pdf.set_font("helvetica", "B", 9)
+    pdf.set_text_color(10, 37, 64)
+    pdf.cell(0, 5, "B. Pilar Comercial & Estrategia de Mercado", 0, 1, "L")
+    pdf.set_font("helvetica", "", 8.5)
+    pdf.set_text_color(50, 50, 50)
+    pdf.multi_cell(0, 4, "El modelo de adquisicion descansa enteramente en la intuicion comercial y en esfuerzos de redes sociales sin un embudo (funnel) estructurado. La ausencia de un perfil de cliente ideal (avatar) documentado genera altos costos de adquisicion de clientes (CAC) y ciclos de venta erraticos. Los ingresos mensuales se califican con un nivel de estabilidad bajo (2/5), reflejando vulnerabilidad ante la falta de contratos recurrentes o previsibles.")
+    pdf.ln(4)
+    
+    pdf.set_font("helvetica", "B", 9)
+    pdf.set_text_color(10, 37, 64)
+    pdf.cell(0, 5, "C. Pilar Operativo & Eficiencia de Procesos", 0, 1, "L")
+    pdf.set_font("helvetica", "", 8.5)
+    pdf.set_text_color(50, 50, 50)
+    pdf.multi_cell(0, 4, "El negocio exhibe el nivel maximo de dependencia operativa del fundador (5/5). La organizacion opera bajo un esquema de \"cultura de memoria\", donde ningun proceso clave cuenta con manuales, procedimientos o flujogramas documentados. Esto genera un cuello de botella severo: si el fundador detiene su actividad diaria por enfermedad o viaje, la generacion de valor y la operacion de la empresa se paralizan por completo.")
+    pdf.ln(4)
+    
+    pdf.set_font("helvetica", "B", 9)
+    pdf.set_text_color(10, 37, 64)
+    pdf.cell(0, 5, "D. Pilar Legal & Gobierno Corporativo", 0, 1, "L")
+    pdf.set_font("helvetica", "", 8.5)
+    pdf.set_text_color(50, 50, 50)
+    pdf.multi_cell(0, 4, "Se identifican pendientes en obligaciones tributarias y una practica generalizada de operar mediante acuerdos de palabra con proveedores y clientes en lugar de contratos escritos y blindados. Esto expone a la compania a litigios operativos y riesgos patrimoniales innecesarios.")
+
     # ---------------------------------------------------------
     # PÁGINA 3: Hoja de Ruta Estratégica (Plan de Trabajo 90 Días)
     # ---------------------------------------------------------
     pdf.add_page()
     
     pdf.set_font("helvetica", "B", 11)
-    pdf.cell(0, 6, "3. Hoja de Ruta Estrategica (Plan de Trabajo 90 Dias)", 0, 1, "L")
+    pdf.set_text_color(10, 37, 64)
+    pdf.cell(0, 6, "3. Hoja de Ruta Estratégica (Plan de Trabajo 90 Dias)", 0, 1, "L")
+    pdf.ln(2)
     
     pdf.set_font("helvetica", "B", 9)
-    pdf.set_text_color(212, 175, 55) # Color dorado para fases
+    pdf.set_text_color(212, 175, 55)
     pdf.cell(0, 5, "Fase 1: Estabilizacion de Urgencias y Caja (Mes 1)", 0, 1, "L")
     pdf.set_font("helvetica", "", 8.5)
-    pdf.set_text_color(0, 0, 0)
-    pdf.multi_cell(0, 4, "Objetivo: Detener la quema de efectivo y blindar el patrimonio.\n- Establecer cuentas bancarias corporativas 100% separadas de las personales.\n- Implementar un Flujo de Caja Operativo diario a 13 semanas.\n- Auditoria tributaria expres para sanear pendientes fiscales.")
-    pdf.ln(3)
+    pdf.set_text_color(50, 50, 50)
+    pdf.multi_cell(0, 4, "Objetivo: Detener la quema de efectivo y blindar el patrimonio.\n- Establecer cuentas bancarias corporativas 100% separadas de las personales.\n- Implementar un Flujo de Caja Operativo diario a 13 semanas para control estricto de liquidez.\n- Auditoria tributaria expres para sanear pendientes fiscales inmediatos.")
+    pdf.ln(4)
     
     pdf.set_font("helvetica", "B", 9)
     pdf.set_text_color(212, 175, 55)
     pdf.cell(0, 5, "Fase 2: Reingenieria Comercial y Claridad de Oferta (Mes 2)", 0, 1, "L")
     pdf.set_font("helvetica", "", 8.5)
-    pdf.set_text_color(0, 0, 0)
-    pdf.multi_cell(0, 4, "Objetivo: Estructurar un motor de ventas predecible.\n- Definicion estricta del Avatar y propuesta de valor basada en margenes.\n- Diseno e implementacion de un embudo (funnel) de ventas comercial medible.\n- Estandarizacion y formalizacion de contratos base.")
-    pdf.ln(3)
+    pdf.set_text_color(50, 50, 50)
+    pdf.multi_cell(0, 4, "Objetivo: Estructurar un motor de ventas predecible.\n- Definicion estricta del Avatar y propuesta de valor basada en margenes de contribucion.\n- Diseno e implementacion de un embudo (funnel) de ventas comercial medible.\n- Estandarizacion y formalizacion de contratos base con clientes y proveedores.")
+    pdf.ln(4)
     
     pdf.set_font("helvetica", "B", 9)
     pdf.set_text_color(212, 175, 55)
     pdf.cell(0, 5, "Fase 3: Estandarizacion y Desacoplamiento Operativo (Mes 3)", 0, 1, "L")
     pdf.set_font("helvetica", "", 8.5)
-    pdf.set_text_color(0, 0, 0)
-    pdf.multi_cell(0, 4, "Objetivo: Reducir la dependencia del fundador y escalar con autonomia.\n- Documentacion de los 3 procesos core de entrega de servicio.\n- Automatizacion de flujos con herramientas en la nube.\n- Establecimiento de un cuadro de mando integral (KPIs gerenciales).")
+    pdf.set_text_color(50, 50, 50)
+    pdf.multi_cell(0, 4, "Objetivo: Reducir la dependencia del fundador y escalar con autonomia.\n- Documentacion de los 3 procesos core de entrega de servicio en manuales operativos.\n- Automatizacion de flujos con herramientas de gestion en la nube.\n- Establecimiento de un cuadro de mando integral (KPIs gerenciales mensuales).")
     
-    return pdf.output(dest='S').encode('latin1')
+    return BytesIO(pdf.output(dest='S'))
+
 # ==========================================
 # 4. IDENTIDAD VISUAL PREMIUM Y ANIMACIONES (CSS)
 # ==========================================
@@ -670,7 +715,7 @@ with st.expander("🔑 Acceder al Dashboard Ejecutivo (Uso exclusivo de Consulto
                         fila_datos = df_clientes[df_clientes[col_elegida] == empresa_seleccionada].iloc[0]
                         pdf_buffer = generar_pdf_mckinsey(fila_datos)
                         
-                        st.success("✅ ¡Informe Ejecutivo estructurado y listo para descargar!")
+                        st.success("✅ ¡Informe Ejecutivo de 3 páginas estructurado y listo para descargar!")
                         
                         st.download_button(
                             label="📥 Descargar Informe Ejecutivo en Formato PDF (Corporativo)",
