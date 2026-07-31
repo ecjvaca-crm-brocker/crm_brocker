@@ -2,9 +2,6 @@ import streamlit as st
 import urllib.parse
 import sqlite3
 import pandas as pd
-from datetime import datetime
-from io import BytesIO
-from fpdf import FPDF
 import numpy as np
 import matplotlib.pyplot as plt
 import tempfile
