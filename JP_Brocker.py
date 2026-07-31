@@ -624,3 +624,93 @@ with st.expander("🔑 Acceder al Dashboard Ejecutivo (Uso exclusivo de Consulto
 
     elif pass_input != "":
         st.error("❌ Contraseña incorrecta. El acceso al sistema central permanece revocado.")
+        # ==========================================
+st.markdown("### 🔒 Panel de Control Interno")
+
+with st.expander("🔑 Acceder al Dashboard Ejecutivo (Uso exclusivo de Consultores)"):
+    pass_input = st.text_input("Ingrese la clave de seguridad para visualizar métricas:", type="password", key="pass_dash")
+    
+    if pass_input == PASSWORD_DASHBOARD:
+        st.success("🔓 Acceso concedido de forma segura.")
+        
+        # --- SUBSECCIÓN A: LEADS TRADICIONALES SQL ---
+        df_leads = leer_leads()
+        if not df_leads.empty:
+            total_leads = len(df_leads)
+            st.metric(label="📈 Total de Prospectos Capturados (Web)", value=total_leads)
+            
+            dash_col1, dash_col2 = st.columns([1, 1])
+            with dash_col1:
+                st.markdown("#### 🎯 Solicitudes por Tipo de Producto")
+                st.bar_chart(df_leads["producto"].value_counts())
+            with dash_col2:
+                st.markdown("#### 📍 Concentración Geográfica")
+                st.bar_chart(df_leads["ciudad"].value_counts())
+                
+            st.write("")
+            st.markdown("#### 📑 Historial Completo de Expedientes en SQL")
+            st.dataframe(df_leads, use_container_width=True)
+        else:
+            st.info("📊 El sistema SQL está activo pero aún no hay registros web directos.")
+
+        st.write("---")
+
+        # --- SUBSECCIÓN B: GENERADOR DE INFORMES MCKINSEY & COMPANY ---
+        st.markdown("### 🤖 Generador de Diagnósticos McKinsey (Google Forms)")
+        st.caption("Verificando conexión y datos extraídos desde tu Google Sheet:")
+        
+        df_clientes = cargar_datos_google_sheet(URL_GOOGLE_SHEET)
+
+        if not df_clientes.empty:
+            # 1. MOSTRAR LAS COLUMNAS DETECTADAS PARA QUE LAS VEAS
+            st.success(f"✅ Google Sheet conectado con éxito. Total de registros encontrados: {len(df_clientes)}")
+            
+            with st.expander("🔍 Ver tabla completa de respuestas del Google Sheet (Depuración)"):
+                st.dataframe(df_clientes, use_container_width=True)
+                st.write("Columnas detectadas en tu archivo:", list(df_clientes.columns))
+
+            # 2. SELECTOR DE COLUMNA MANUAL O AUTOMÁTICO
+            # Te permite elegir manualmente la columna si el sistema automático no atina
+            columnas_disponibles = list(df_clientes.columns)
+            
+            # Intentar adivinar cuál columna tiene el nombre
+            sugerencia_index = 0
+            for i, col in enumerate(columnas_disponibles):
+                if any(k in col.lower() for k in ["empresa", "nombre", "negocio", "razon"]):
+                    sugerencia_index = i
+                    break
+
+            col_elegida = st.selectbox(
+                "Selecciona la columna de tu Google Sheet que contiene el Nombre de la Empresa o Cliente:", 
+                options=columnas_disponibles,
+                index=sugerencia_index
+            )
+            
+            if col_elegida:
+                empresas_unicas = df_clientes[col_elegida].dropna().unique()
+                
+                if len(empresas_unicas) > 0:
+                    empresa_seleccionada = st.selectbox("Selecciona la Empresa Específica:", options=empresas_unicas)
+                    
+                    if st.button("🚀 Generar Informe Estratégico McKinsey"):
+                        fila_datos = df_clientes[df_clientes[col_elegida] == empresa_seleccionada].iloc[0]
+                        informe_generado = generar_prompt_mckinsey(fila_datos)
+                        
+                        st.write("")
+                        st.markdown("---")
+                        st.markdown(informe_generado)
+                        st.markdown("---")
+                        
+                        st.download_button(
+                            label="📥 Descargar Informe Ejecutivo (Markdown)",
+                            data=informe_generado,
+                            file_name=f"Informe_McKinsey_{str(empresa_seleccionada).replace(' ', '_')}.md",
+                            mime="text/markdown"
+                        )
+                else:
+                    st.warning("⚠️ La columna seleccionada no contiene datos de empresas (está vacía).")
+        else:
+            st.error("❌ No se pudo leer el Google Sheet. Asegúrate de que el enlace sea correcto y que el documento esté configurado como público ('Cualquier usuario con el enlace puede ver').")
+
+    elif pass_input != "":
+        st.error("❌ Contraseña incorrecta. El acceso al sistema central permanece revocado.")
