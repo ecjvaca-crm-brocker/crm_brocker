@@ -3,6 +3,8 @@ import urllib.parse
 import sqlite3
 import pandas as pd
 from datetime import datetime
+from io import BytesIO
+from fpdf import FPDF
 
 # ==========================================
 # 1. CONFIGURACIONES INICIALES GENERALES
@@ -16,10 +18,7 @@ st.set_page_config(
     layout="wide"
 )
 
-# 📸 ENLACE DIRECTO DE FOTOGRAFÍA DESDE GITHUB
 URL_FOTO_ASESOR = "https://raw.githubusercontent.com/ecjvaca-crm-brocker/crm_brocker/main/IMGAENJONAS.jpeg"
-
-# Enlace de tu Google Sheet de respuestas del formulario
 URL_GOOGLE_SHEET = "https://docs.google.com/spreadsheets/d/1DiKGC8Q65SjouMutswiF00hsdbAXTIV5yDlGXGEAZnU/edit?gid=1469424641#gid=1469424641"
 
 # ==========================================
@@ -60,15 +59,14 @@ def leer_leads():
     return df
 
 def cargar_datos_google_sheet(url_sheet):
-    """
-    Función para leer de forma automática las respuestas del Google Forms / Google Sheet.
-    """
     try:
         if "edit" in url_sheet:
             csv_url = url_sheet.split("/edit")[0] + "/export?format=csv"
         else:
             csv_url = url_sheet
         df = pd.read_csv(csv_url)
+        if "<html" in str(df.iloc[0, 0]).lower():
+            return pd.DataFrame()
         return df
     except Exception as e:
         return pd.DataFrame()
@@ -76,74 +74,159 @@ def cargar_datos_google_sheet(url_sheet):
 init_db()
 
 # ==========================================
-# 3. GENERADOR DE INFORMES MCKINSEY & COMPANY
+# 3. GENERADOR DE INFORMES PDF PROFESIONAL (MCKINSEY STYLE)
 # ==========================================
-def generar_prompt_mckinsey(fila_cliente):
-    """
-    Toma la fila de datos del Google Sheet y genera el informe directivo de alta consultoría.
-    Busca de forma inteligente las columnas sin importar variaciones menores de nombres.
-    """
-    # Función auxiliar para buscar valores seguros en el DataFrame
+class PDFConsultoria(FPDF):
+    def header(self):
+        # Cabecera Institucional
+        self.set_font("helvetica", "B", 10)
+        self.set_text_color(10, 37, 64)
+        self.cell(0, 8, "ESCALA CONSULTING • METODOLOGÍA MCKINSEY & COMPANY", 0, 1, "L")
+        self.set_font("helvetica", "", 8)
+        self.set_text_color(120, 120, 120)
+        self.cell(0, 5, "Informe Ejecutivo de Diagnóstico y Madurez Empresarial", 0, 1, "L")
+        self.set_draw_color(212, 175, 55) # Dorado ejecutivo
+        self.set_line_width(0.8)
+        self.line(10, 22, 200, 22)
+        self.ln(8)
+
+    def footer(self):
+        self.set_y(-15)
+        self.set_font("helvetica", "I", 8)
+        self.set_text_color(150, 150, 150)
+        self.cell(0, 10, f"Página {self.page_no()}/{{nb}} | Uso Exclusivo - Escala Finance & Insurance", 0, 0, "C")
+
+def generar_pdf_mckinsey(fila_client):
     def buscar_col(keywords, defecto="No especificado"):
-        for col in fila_cliente.index:
+        for col in fila_client.index:
             if any(k.lower() in col.lower() for k in keywords):
-                val = fila_cliente[col]
+                val = fila_client[col]
                 return str(val) if pd.notna(val) else defecto
         return defecto
 
     empresa = buscar_col(["empresa", "negocio", "organización"], "Empresa Cliente")
     representante = buscar_col(["nombre", "representante", "propietario"], "Representante")
-    sector = buscar_col(["sector", "industria", "antigüedad"], "Sector General / No especificado")
+    sector = buscar_col(["sector", "industria", "antigüedad"], "Servicios Generales")
     contacto_email = buscar_col(["correo", "email"], "correo@ejemplo.com")
     contacto_tel = buscar_col(["teléfono", "celular", "whatsapp"], "0000000000")
-    equipo = buscar_col(["empleados", "equipo", "colaboradores", "personas"], "No especificado")
+    equipo = buscar_col(["empleados", "equipo", "colaboradores", "personas"], "Solo el dueño")
     
-    objetivo_12m = buscar_col(["objetivo", "12 meses", "meta anual"], "No especificado")
-    dolores = buscar_col(["dolor", "cuello", "problema", "obstáculo"], "No especificado")
-    meta_consultoria = buscar_col(["consultoría", "esperas lograr", "ayuda"], "No especificado")
+    objetivo_12m = buscar_col(["objetivo", "12 meses", "meta anual"], "Punto de equilibrio y rentabilidad")
+    dolores = buscar_col(["dolor", "cuello", "problema", "obstáculo"], "Organización y crecimiento comercial")
+    meta_consultoria = buscar_col(["consultoría", "esperas lograr", "ayuda"], "Aumentar ventas y captar clientes")
     
     fecha_actual = datetime.now().strftime("%Y-%m-%d")
 
-    informe_markdown = f"""
-# ESCALA CONSULTING • METODOLOGÍA MCKINSEY & COMPANY
-## Informe Ejecutivo de Diagnóstico Empresarial
+    pdf = PDFConsultoria(orientation="P", unit="mm", format="A4")
+    pdf.alias_nb_pages()
+    pdf.add_page()
+    pdf.set_auto_page_break(auto=True, margin=15)
 
-- **Empresa:** {empresa}
-- **Representante:** {representante}
-- **Sector:** {sector}
-- **Fecha:** {fecha_actual}
-- **Contacto:** {contacto_email} | {contacto_tel}
-- **Equipo:** {equipo} colaboradores
+    # TÍTULO PRINCIPAL DEL DOCUMENTO
+    pdf.set_font("helvetica", "B", 16)
+    pdf.set_text_color(10, 37, 64)
+    pdf.cell(0, 10, f"DIAGNÓSTICO DIRECTIVO: {empresa.upper()}", 0, 1, "L")
+    
+    # METADATOS EN BLOQUE GRIS
+    pdf.set_font("helvetica", "", 9)
+    pdf.set_fill_color(240, 244, 248)
+    pdf.set_text_color(50, 50, 50)
+    
+    meta_texto = (
+        f"Representante: {representante}   |   Sector: {sector}   |   Fecha: {fecha_actual}\n"
+        f"Contacto: {contacto_email} / {contacto_tel}   |   Estructura: {equipo}"
+    )
+    pdf.multi_cell(0, 6, meta_texto, 0, "L", fill=True)
+    pdf.ln(5)
 
-### Resumen Ejecutivo y Estado de Salud
-- **Estado General:** 🟡 **EN RIESGO** *(Sujeto a validación analítica de flujos)*
-- **Diagnóstico Breve:** La organización presenta fricciones operativas y dependencias críticas que limitan su capacidad de escalamiento, requiriendo un reordenamiento financiero inmediato bajo el principio MECE.
+    # SECCIÓN 1: ESTADO DE SALUD Y MÉTRICAS
+    pdf.set_font("helvetica", "B", 11)
+    pdf.set_text_color(10, 37, 64)
+    pdf.cell(0, 8, "1. Diagnóstico de Situación y Estado de Salud", 0, 1, "L")
+    
+    pdf.set_font("helvetica", "B", 9)
+    pdf.set_fill_color(255, 243, 205) # Alerta amarilla
+    pdf.set_text_color(133, 100, 4)
+    pdf.cell(0, 7, "  ESTADO GENERAL: CRÍTICO / REQUIERE INTERVENCIÓN URGENTE", 0, 1, "L", fill=True)
+    
+    pdf.set_font("helvetica", "", 9)
+    pdf.set_text_color(60, 60, 60)
+    pdf.multi_cell(0, 5, "Se detectan vulnerabilidades severas en liquidez, ausencia de controles financieros formales y una dependencia operativa total del fundador.")
+    pdf.ln(4)
 
-### 1. Índice de Madurez de Gestión & Evaluación Estratégica
-- **Objetivo Principal (12 Meses):** {objetivo_12m}
-- **Principales Dolores:** {dolores}
-- **Meta con Consultoría:** {meta_consultoria}
+    # TABLA DE INDICADORES / DIMENSIÓN ESTRATÉGICA
+    pdf.set_font("helvetica", "B", 9)
+    pdf.set_fill_color(10, 37, 64)
+    pdf.set_text_color(255, 255, 255)
+    pdf.cell(60, 7, " Dimensión Estratégica", 1, 0, "L", fill=True)
+    pdf.cell(80, 7, " Respuesta Registrada", 1, 0, "L", fill=True)
+    pdf.cell(50, 7, " Evaluación de Riesgo", 1, 1, "L", fill=True)
 
-### 2. Análisis de Riesgos y Cuellos de Botella (Matriz de KPIs)
-- **Dependencia del Fundador:** Nivel Alto (4/5) - *Operación altamente centralizada en la toma de decisiones directivas.*
-- **Flujo de Caja y Liquidez:** Vulnerabilidad detectada por desfases en ciclos de conversión de efectivo.
-- **Separación de Finanzas:** Requiere blindaje patrimonial separando cuentas personales y corporativas.
-- **Control P&L y Balance:** Oportunidad crítica de optimización en la estructura de costos fijos (OPEX).
-- **Márgenes de Utilidad:** Presionados por ineficiencias en la asignación de recursos operativos.
-- **Procesos Operativos:** Ausencia de estandarización documental y manuales de procedimientos.
+    datos_tabla_1 = [
+        ("Objetivo a 12 Meses", objetivo_12m, "Meta Ambiciosa"),
+        ("Principales Dolores", dolores, "Crítico Operativo"),
+        ("Meta con Consultoría", meta_consultoria, "Prioridad Comercial")
+    ]
 
-### 3. Evaluación Comercial y de Ventas
-- **Cliente Ideal (Avatar):** Definición comercial pendiente de estandarización en el segmento objetivo.
-- **Proceso de Ventas / Funnel:** Embudo de conversión lineal con áreas de mejora en la fase de cierre.
-- **Herramientas Digitales:** Integración inicial de analítica pero con baja automatización de procesos.
-- **Estructura Legal y Contratos:** Validación de blindaje jurídico requerida para operaciones de escala.
+    pdf.set_font("helvetica", "", 8)
+    pdf.set_text_color(40, 40, 40)
+    for dim, resp, riesgo in datos_tabla_1:
+        pdf.cell(60, 10, f" {dim}", 1, 0, "L")
+        pdf.cell(80, 10, f" {resp[:42]}", 1, 0, "L")
+        pdf.cell(50, 10, f" {riesgo}", 1, 1, "L")
+    pdf.ln(6)
 
-### 4. Hoja de Ruta Preliminar (Plan de Trabajo Escala - 90 Días)
-- **Fase 1 (Mes 1) - Control Financiero y Blindaje de Caja:** Reingeniería del presupuesto operativo, auditoría de cuentas por cobrar y establecimiento de indicadores de liquidez diarios.
-- **Fase 2 (Mes 2) - Activación Comercial y Definición de Avatar:** Rediseño del perfil del cliente ideal (ICP), optimización del ciclo de ventas y estructuración de oferta de valor.
-- **Fase 3 (Mes 3) - Estandarización y Reducción de Dependencia:** Creación de manuales operativos, automatización de flujos y delegación directiva basada en OKRs.
-"""
-    return informe_markdown
+    # SECCIÓN 2: MATRIZ DE RIESGOS Y CUELLOS DE BOTELLA
+    pdf.set_font("helvetica", "B", 11)
+    pdf.set_text_color(10, 37, 64)
+    pdf.cell(0, 8, "2. Análisis de Riesgos y Cuellos de Botella (Matriz de KPIs)", 0, 1, "L")
+
+    datos_tabla_2 = [
+        ("Dependencia del Fundador", "Nivel 5/5 (Operación 100% dependiente de la memoria y presencia del dueño)."),
+        ("Flujo de Caja y Liquidez", "Sufrimos constantemente por falta de efectivo o desfases temporales."),
+        ("Separación de Finanzas", "No hay división clara entre recursos personales y corporativos."),
+        ("Control P&L y Balance", "Ausencia de revisión mensual de Estados de Resultados."),
+        ("Márgenes de Utilidad", "No se conocen con certeza analítica los márgenes netos por línea.")
+    ]
+
+    pdf.set_font("helvetica", "B", 8)
+    pdf.set_fill_color(220, 225, 230)
+    pdf.set_text_color(10, 37, 64)
+    pdf.cell(60, 6, " Indicador Clave", 1, 0, "L", fill=True)
+    pdf.cell(130, 6, " Situación Actual Detectada", 1, 1, "L", fill=True)
+
+    pdf.set_font("helvetica", "", 8)
+    pdf.set_text_color(40, 40, 40)
+    for ind, sit in datos_tabla_2:
+        pdf.cell(60, 8, f" {ind}", 1, 0, "L")
+        pdf.cell(130, 8, f" {sit[:75]}", 1, 1, "L")
+    pdf.ln(6)
+
+    # SECCIÓN 3: HOJA DE RUTA (PLAN DE TRABAJO 90 DÍAS)
+    pdf.set_font("helvetica", "B", 11)
+    pdf.set_text_color(10, 37, 64)
+    pdf.cell(0, 8, "3. Hoja de Ruta Preliminar (Plan de Trabajo Escala - 90 Días)", 0, 1, "L")
+
+    fases = [
+        ("Fase 1 (Mes 1): Control Financiero y Blindaje de Caja", 
+         "Separación inmediata de finanzas personales y del negocio, implementación de Estado de Resultados (P&L) básico mensual y estructuración de proyecciones de flujo de caja a 90 días."),
+        ("Fase 2 (Mes 2): Activación Comercial y Definición de Avatar", 
+         "Definición rigurosa del perfil del cliente ideal (avatar), diseño de un embudo de ventas estructurado y formalización de propuestas comerciales."),
+        ("Fase 3 (Mes 3): Estandarización y Reducción de Dependencia", 
+         "Documentación de procesos clave mediante manuales operativos y uso de herramientas de gestión para disminuir la dependencia diaria del fundador.")
+    ]
+
+    for titulo_fase, desc_fase in fases:
+        pdf.set_font("helvetica", "B", 9)
+        pdf.set_text_color(16, 185, 129) # Verde corporativo
+        pdf.cell(0, 6, titulo_fase, 0, 1, "L")
+        pdf.set_font("helvetica", "", 8.5)
+        pdf.set_text_color(50, 50, 50)
+        pdf.multi_cell(0, 5, desc_fase)
+        pdf.ln(3)
+
+    # Retornar los bytes del PDF generado
+    return BytesIO(pdf.output(dest='S'))
 
 # ==========================================
 # 4. IDENTIDAD VISUAL PREMIUM Y ANIMACIONES (CSS)
@@ -561,73 +644,6 @@ st.write("---")
 st.markdown("### 🔒 Panel de Control Interno")
 
 with st.expander("🔑 Acceder al Dashboard Ejecutivo (Uso exclusivo de Consultores)"):
-    pass_input = st.text_input("Ingrese la clave de seguridad para visualizar métricas:", type="password")
-    
-    if pass_input == PASSWORD_DASHBOARD:
-        st.success("🔓 Acceso concedido de forma segura.")
-        
-        # --- SUBSECCIÓN A: LEADS TRADICIONALES SQL ---
-        df_leads = leer_leads()
-        if not df_leads.empty:
-            total_leads = len(df_leads)
-            st.metric(label="📈 Total de Prospectos Capturados (Web)", value=total_leads)
-            
-            dash_col1, dash_col2 = st.columns([1, 1])
-            with dash_col1:
-                st.markdown("#### 🎯 Solicitudes por Tipo de Producto")
-                st.bar_chart(df_leads["producto"].value_counts())
-            with dash_col2:
-                st.markdown("#### 📍 Concentración Geográfica")
-                st.bar_chart(df_leads["ciudad"].value_counts())
-                
-            st.write("")
-            st.markdown("#### 📑 Historial Completo de Expedientes en SQL")
-            st.dataframe(df_leads, use_container_width=True)
-        else:
-            st.info("📊 El sistema SQL está activo pero aún no hay registros web directos.")
-
-        st.write("---")
-
-        # --- SUBSECCIÓN B: GENERADOR DE INFORMES MCKINSEY & COMPANY ---
-        st.markdown("### 🤖 Generador de Diagnósticos McKinsey (Google Forms)")
-        st.caption("Selecciona una empresa registrada en tu Google Sheet para generar el informe directivo automatizado:")
-        
-        df_clientes = cargar_datos_google_sheet(URL_GOOGLE_SHEET)
-
-        if not df_clientes.empty:
-            # Detectar automáticamente la columna que contenga el nombre de la empresa o cliente
-            col_empresa_candidatas = [c for c in df_clientes.columns if any(k in c.lower() for k in ["empresa", "nombre", "negocio"])]
-            
-            if col_empresa_candidatas:
-                col_elegida = col_empresa_candidatas[0]
-                empresa_seleccionada = st.selectbox("Seleccione la Empresa Cliente:", options=df_clientes[col_elegida].dropna().unique())
-                
-                if st.button("🚀 Generar Informe Estratégico McKinsey"):
-                    fila_datos = df_clientes[df_clientes[col_elegida] == empresa_seleccionada].iloc[0]
-                    informe_generado = generar_prompt_mckinsey(fila_datos)
-                    
-                    st.write("")
-                    st.markdown("---")
-                    st.markdown(informe_generado)
-                    st.markdown("---")
-                    
-                    st.download_button(
-                        label="📥 Descargar Informe Ejecutivo (Markdown)",
-                        data=informe_generado,
-                        file_name=f"Informe_McKinsey_{str(empresa_seleccionada).replace(' ', '_')}.md",
-                        mime="text/markdown"
-                    )
-            else:
-                st.warning("⚠️ No se encontró una columna identificable de empresa en el Google Sheet. Verifica los encabezados de tu formulario.")
-        else:
-            st.info("ℹ️ Sincronizando datos con el Google Sheet de respuestas... (Asegúrate de que la hoja sea accesible o tenga datos cargados).")
-
-    elif pass_input != "":
-        st.error("❌ Contraseña incorrecta. El acceso al sistema central permanece revocado.")
-        # ==========================================
-st.markdown("### 🔒 Panel de Control Interno")
-
-with st.expander("🔑 Acceder al Dashboard Ejecutivo (Uso exclusivo de Consultores)"):
     pass_input = st.text_input("Ingrese la clave de seguridad para visualizar métricas:", type="password", key="pass_dash")
     
     if pass_input == PASSWORD_DASHBOARD:
@@ -655,25 +671,14 @@ with st.expander("🔑 Acceder al Dashboard Ejecutivo (Uso exclusivo de Consulto
 
         st.write("---")
 
-        # --- SUBSECCIÓN B: GENERADOR DE INFORMES MCKINSEY & COMPANY ---
-        st.markdown("### 🤖 Generador de Diagnósticos McKinsey (Google Forms)")
-        st.caption("Verificando conexión y datos extraídos desde tu Google Sheet:")
+        # --- SUBSECCIÓN B: GENERADOR DE INFORMES PDF MCKINSEY ---
+        st.markdown("### 🤖 Generador de Diagnósticos McKinsey (Exportable a PDF)")
+        st.caption("Selecciona una empresa registrada en tu Google Sheet para generar el informe directivo institucional:")
         
         df_clientes = cargar_datos_google_sheet(URL_GOOGLE_SHEET)
 
         if not df_clientes.empty:
-            # 1. MOSTRAR LAS COLUMNAS DETECTADAS PARA QUE LAS VEAS
-            st.success(f"✅ Google Sheet conectado con éxito. Total de registros encontrados: {len(df_clientes)}")
-            
-            with st.expander("🔍 Ver tabla completa de respuestas del Google Sheet (Depuración)"):
-                st.dataframe(df_clientes, use_container_width=True)
-                st.write("Columnas detectadas en tu archivo:", list(df_clientes.columns))
-
-            # 2. SELECTOR DE COLUMNA MANUAL O AUTOMÁTICO
-            # Te permite elegir manualmente la columna si el sistema automático no atina
             columnas_disponibles = list(df_clientes.columns)
-            
-            # Intentar adivinar cuál columna tiene el nombre
             sugerencia_index = 0
             for i, col in enumerate(columnas_disponibles):
                 if any(k in col.lower() for k in ["empresa", "nombre", "negocio", "razon"]):
@@ -692,25 +697,22 @@ with st.expander("🔑 Acceder al Dashboard Ejecutivo (Uso exclusivo de Consulto
                 if len(empresas_unicas) > 0:
                     empresa_seleccionada = st.selectbox("Selecciona la Empresa Específica:", options=empresas_unicas)
                     
-                    if st.button("🚀 Generar Informe Estratégico McKinsey"):
+                    if st.button("🚀 Generar Informe Estratégico McKinsey (PDF)"):
                         fila_datos = df_clientes[df_clientes[col_elegida] == empresa_seleccionada].iloc[0]
-                        informe_generado = generar_prompt_mckinsey(fila_datos)
+                        pdf_buffer = generar_pdf_mckinsey(fila_datos)
                         
-                        st.write("")
-                        st.markdown("---")
-                        st.markdown(informe_generado)
-                        st.markdown("---")
+                        st.success("✅ ¡Informe Ejecutivo estructurado y listo para descargar!")
                         
                         st.download_button(
-                            label="📥 Descargar Informe Ejecutivo (Markdown)",
-                            data=informe_generado,
-                            file_name=f"Informe_McKinsey_{str(empresa_seleccionada).replace(' ', '_')}.md",
-                            mime="text/markdown"
+                            label="📥 Descargar Informe Ejecutivo en Formato PDF (Corporativo)",
+                            data=pdf_buffer,
+                            file_name=f"Informe_McKinsey_{str(empresa_seleccionada).replace(' ', '_')}.pdf",
+                            mime="application/pdf"
                         )
                 else:
-                    st.warning("⚠️ La columna seleccionada no contiene datos de empresas (está vacía).")
+                    st.warning("⚠️ La columna seleccionada no contiene datos de empresas.")
         else:
-            st.error("❌ No se pudo leer el Google Sheet. Asegúrate de que el enlace sea correcto y que el documento esté configurado como público ('Cualquier usuario con el enlace puede ver').")
+            st.error("❌ No se pudo leer el Google Sheet. Verifica que el enlace sea accesible o público.")
 
     elif pass_input != "":
         st.error("❌ Contraseña incorrecta. El acceso al sistema central permanece revocado.")
