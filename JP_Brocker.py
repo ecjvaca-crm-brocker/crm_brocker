@@ -711,10 +711,18 @@ with st.expander("🔒 Acceso a Panel de Administración y Informes"):
                 st.dataframe(df_gsheet, use_container_width=True)
                 
                 st.markdown("#### Generar Informe Ejecutivo PDF (Metodología McKinsey)")
+                
+                # Buscar dinámicamente la columna que contenga el nombre de la empresa o cliente
+                columna_nombre_preferida = None
+                for col in df_gsheet.columns:
+                    if any(k in col.lower() for k in ["empresa", "nombre", "cliente", "razon", "negocio"]):
+                        columna_nombre_preferida = col
+                        break
+                
                 indice_fila = st.selectbox(
-                    "Selecciona el número de fila del cliente:", 
+                    "Selecciona el cliente para el informe:", 
                     options=range(len(df_gsheet)),
-                    format_func=lambda x: f"Fila {x}: {df_gsheet.iloc[x].dropna().values[0] if len(df_gsheet.columns) > 0 else x}"
+                    format_func=lambda x: f"Fila {x}: {df_gsheet.iloc[x][columna_nombre_preferida] if columna_nombre_preferida and pd.notna(df_gsheet.iloc[x][columna_nombre_preferida]) else df_gsheet.iloc[x].values[0]}"
                 )
                 
                 if st.button("📄 Generar y Descargar PDF Ejecutivo"):
@@ -730,4 +738,4 @@ with st.expander("🔒 Acceso a Panel de Administración y Informes"):
             else:
                 st.warning("No se pudo conectar o leer datos desde el Google Sheet configurado.")
     elif password_ingresada:
-        st.error("❌ Contraseña incorrecta.")    
+        st.error("❌ Contraseña incorrecta.")
