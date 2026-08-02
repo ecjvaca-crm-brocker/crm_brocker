@@ -17,7 +17,7 @@ NUMERO_WHATSAPP = "593998076979"
 PASSWORD_DASHBOARD = "Escala2026" 
 
 st.set_page_config(
-    page_title="Escala Finance & Insurance | Consultoría Financiera y Corretaje", 
+    page_title="Escala Finance  | Consultoría Empresarial y Financiera", 
     page_icon="🏛️", 
     layout="wide"
 )
@@ -84,7 +84,7 @@ class PDFConsultoria(FPDF):
     def header(self):
         self.set_font("helvetica", "B", 10)
         self.set_text_color(10, 37, 64)
-        self.cell(0, 8, "ESCALA CONSULTING - METODOLOGIA MCKINSEY & COMPANY", 0, 1, "L")
+        self.cell(0, 8, "ESCALA CONSULTING - ", 0, 1, "L")
         self.set_font("helvetica", "", 8)
         self.set_text_color(120, 120, 120)
         self.cell(0, 5, "Informe Ejecutivo de Diagnostico y Madurez Empresarial", 0, 1, "L")
@@ -108,8 +108,8 @@ def generar_grafico_radar():
     angles += angles[:1]
     
     fig, ax = plt.subplots(figsize=(4, 4), subplot_kw=dict(polar=True))
-    ax.plot(angles, stats, color='#0A2540', linewidth=2, linestyle='solid')
-    ax.fill(angles, stats, color='#10B981', alpha=0.3)
+    ax.plot(angles, stats, color='#0A192', linewidth=2, linestyle='solid')
+    ax.fill(angles, stats, color='#D4AF37', alpha=0.3)
     
     ax.set_yticklabels([])
     ax.set_xticks(angles[:-1])
@@ -124,7 +124,7 @@ def generar_grafico_radar():
     plt.close(fig)
     return temp_file.name
 
-def generar_pdf_mckinsey(fila_client):
+def generar_pdf_(fila_client):
     def buscar_col(keywords, defecto="No especificado"):
         for col in fila_client.index:
             if any(k.lower() in col.lower() for k in keywords):
@@ -414,7 +414,7 @@ st.markdown("""
 # ==========================================
 # 5. CABECERA PRINCIPAL
 # ==========================================
-st.markdown("<h1 style='text-align: center; font-size: 2.8rem; margin-bottom: 0;'>🏛️ ESCALA FINANCE & INSURANCE</h1>", unsafe_allow_html=True)
+st.markdown("<h1 style='text-align: center; font-size: 2.8rem; margin-bottom: 0;'>🏛️ ESCALA FINANCE </h1>", unsafe_allow_html=True)
 st.markdown("<p style='text-align: center; color: #D4AF37; font-size: 1.4rem; font-weight: bold; margin-top: 0;'>Tu consultor financiero de confianza</p>", unsafe_allow_html=True)
 st.write("")
 
@@ -508,7 +508,7 @@ with col_der:
     st.caption("Toca la fotografía de tu asesor para iniciar el flujo interactivo estructurado:")
     
     flujo_bot_whatsapp = (
-        "🏛️ [ESCALA FINANCE & INSURANCE - ASISTENTE VIRTUAL]\n\n"
+        "🏛️ [ESCALA FINANCE  - ASISTENTE VIRTUAL]\n\n"
         "🤖 ¡Hola! Bienvenido al canal interactivo de Escala. Estoy aquí para ingresar tu trámite de forma inmediata.\n\n"
         "Por favor, bríndame tus DATOS PERSONALES base respondiendo en una sola línea:\n"
         "• Nombre y Apellido Completo:\n"
@@ -549,14 +549,39 @@ with col_der:
 
 st.write("---")
 
+def obtener_datos(ticker_symbol):
+    try:
+        ticker = yf.Ticker(ticker_symbol)
+        # Obtenemos los datos históricos recientes del día
+        df = ticker.history(period="2d") 
+        if len(df) >= 2:
+            precio_actual = df['Close'].iloc[-1]
+            precio_anterior = df['Close'].iloc[-2]
+            delta = ((precio_actual - precio_anterior) / precio_anterior) * 100
+            return f"{precio_actual:,.2f}", f"{delta:+.2f}%"
+        else:
+            return "N/A", "0.0%"
+    except:
+        return "Error", "0.0%"
+
 # ==========================================
-# 7. INDICADORES ECONÓMICOS
+# 7. INDICADORES ECONÓMICOS (ACTUALIZADOS)
 # ==========================================
 st.markdown("### 📊 Indicadores Económicos Mundiales y Locales")
+
+# Definimos los símbolos (tickers) en Yahoo Finance
+# Nota: Crudo y bolsas locales específicas (como Ecuador) a veces no están en Yahoo o tienen símbolos distintos.
+sp500_val, sp500_delta = obtener_datos("^GSPC")      # S&P 500
+nasdaq_val, nasdaq_delta = obtener_datos("^IXIC")    # NASDAQ 100
+crudo_val, crudo_delta = obtener_datos("CL=F")       # Petróleo WTI (referencial)
+
 m1, m2, m3, m4, m5 = st.columns(5)
-m1.metric(label="🇺🇸 S&P 500", value="5,137.08", delta="+0.80%")
-m2.metric(label="💻 NASDAQ 100", value="18,302.91", delta="+1.14%")
-m3.metric(label="🛢️ Crudo Oriente (Ecuador)", value="$78.26", delta="-0.45%")
+m1.metric(label="🇺🇸 S&P 500", value=sp500_val, delta=sp500_delta)
+m2.metric(label="💻 NASDAQ 100", value=nasdaq_val, delta=nasdaq_delta)
+m3.metric(label="🛢️ Crudo WTI", value=f"${crudo_val}", delta=crudo_delta)
+
+# Para bolsas locales pequeñas (como Quito o Guayaquil), Yahoo Finance 
+# generalmente no tiene información en tiempo real, por lo que suelen mantenerse manuales o por API local.
 m4.metric(label="🏛️ BV Quito", value="1,045.20", delta="+0.12%")
 m5.metric(label="🏦 BV Guayaquil", value="985.40", delta="-0.08%")
 
