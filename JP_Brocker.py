@@ -215,7 +215,7 @@ def generar_pdf_consultoria(fila_client):
     pdf.cell(0, 5, "A. Pilar Financiero & Control de Caja", 0, 1, "L")
     pdf.set_font("helvetica", "", 8.5)
     pdf.set_text_color(50, 50, 50)
-    pdf.multi_cell(0, 4, "Se detecta una mezcla crítica entre el patrimonio personal del fundador y las finanzas operativas de la compañía, lo que distorsiona la visibilidad real de la rentabilidad. La empresa sufre de escasez recurrente de liquidez a corto plazo ("cash crunch") debido a la ausencia de un presupuesto de caja proyectado a 13 semanas.")
+   pdf.multi_cell(0, 4, "Se detecta una mezcla crítica entre el patrimonio personal del fundador y las finanzas operativas de la compañía, lo que distorsiona la visibilidad real de la rentabilidad. La empresa sufre de escasez recurrente de liquidez a corto plazo ('cash crunch') debido a la ausencia de un presupuesto de caja proyectado a 13 semanas.")
     pdf.ln(3)
     
     pdf.set_font("helvetica", "B", 9)
