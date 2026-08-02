@@ -6,3 +6,7 @@ pandas
 fpdf2
 matplotlib
 numpy
+streamlit
+yfinance
+pandas
+matplotlib
