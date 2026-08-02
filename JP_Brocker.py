@@ -682,3 +682,52 @@ with t3:
         """, unsafe_allow_html=True)
 
 st.write("---")
+
+# ==========================================
+# 10. PANEL DE ADMINISTRACIÓN Y REVISIÓN DE INFORMES
+# ==========================================
+st.write("---")
+with st.expander("🔒 Acceso a Panel de Administración y Informes"):
+    password_ingresada = st.text_input("Contraseña de Administrador:", type="password")
+    
+    if password_ingresada == PASSWORD_DASHBOARD:
+        st.success("✅ Acceso autorizado.")
+        
+        tab_admin1, tab_admin2 = st.tabs(["📋 Leads en SQLite (Web)", "📊 Google Sheets & Informes PDF"])
+        
+        with tab_admin1:
+            st.markdown("### Leads registrados desde el formulario web")
+            df_leads = leer_leads()
+            if not df_leads.empty:
+                st.dataframe(df_leads, use_container_width=True)
+            else:
+                st.info("No hay registros guardados en SQLite todavía.")
+                
+        with tab_admin2:
+            st.markdown("### Base de datos externa y Generador de Informes")
+            df_gsheet = cargar_datos_google_sheet(URL_GOOGLE_SHEET)
+            
+            if not df_gsheet.empty:
+                st.dataframe(df_gsheet, use_container_width=True)
+                
+                st.markdown("#### Generar Informe Ejecutivo PDF (Metodología McKinsey)")
+                indice_fila = st.selectbox(
+                    "Selecciona el número de fila del cliente:", 
+                    options=range(len(df_gsheet)),
+                    format_func=lambda x: f"Fila {x}: {df_gsheet.iloc[x].dropna().values[0] if len(df_gsheet.columns) > 0 else x}"
+                )
+                
+                if st.button("📄 Generar y Descargar PDF Ejecutivo"):
+                    fila_seleccionada = df_gsheet.iloc[indice_fila]
+                    pdf_buffer = generar_pdf_mckinsey(fila_seleccionada)
+                    
+                    st.download_button(
+                        label="📥 Descargar Informe en PDF",
+                        data=pdf_buffer,
+                        file_name=f"Informe_Ejecutivo_Escala_Fila_{indice_fila}.pdf",
+                        mime="application/pdf"
+                    )
+            else:
+                st.warning("No se pudo conectar o leer datos desde el Google Sheet configurado.")
+    elif password_ingresada:
+        st.error("❌ Contraseña incorrecta.")    
