@@ -9,6 +9,8 @@ from datetime import datetime
 from io import BytesIO
 from fpdf import FPDF
 import matplotlib.pyplot as plt
+import streamlit as st
+import yfinance as yf
 
 # ==========================================
 # 1. CONFIGURACIONES INICIALES GENERALES
