@@ -18,7 +18,7 @@ NUMERO_WHATSAPP = "593998076979"
 PASSWORD_DASHBOARD = "Escala2026" 
 
 st.set_page_config(
-    page_title="Escala | Consultoría Epresarial  Financiera", 
+    page_title="Escala Finance & Insurance | Consultoría Financiera y Corretaje", 
     page_icon="🏛️", 
     layout="wide"
 )
@@ -98,7 +98,7 @@ class PDFConsultoria(FPDF):
         self.set_y(-15)
         self.set_font("helvetica", "I", 8)
         self.set_text_color(150, 150, 150)
-        self.cell(0, 10, f"Pagina {self.page_no()}/{{nb}} | Uso Exclusivo - Escala | Consultoría Epresarial  Financiera", 0, 0, "C")
+        self.cell(0, 10, f"Pagina {self.page_no()}/{{nb}} | Uso Exclusivo - Escala Finance & Insurance", 0, 0, "C")
 
 def generar_grafico_radar():
     labels = ['Comercial', 'Financiero', 'Operativo', 'Legal & Gov']
@@ -133,7 +133,7 @@ def generar_pdf_mckinsey(fila_client):
                 return str(val) if pd.notna(val) else defecto
         return defecto
 
-    empresa = buscar_col(["empresa", "negocio", "organización"], "Escala | Consultoría Epresarial  Financiera (Kinetic Motor Studio)")
+    empresa = buscar_col(["empresa", "negocio", "organización"], "Escala Consulting (Kinetic Motor Studio)")
     representante = buscar_col(["nombre", "representante", "propietario"], "Jonathan Vaca")
     
     pdf = PDFConsultoria()
@@ -401,17 +401,60 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # ==========================================
-# 5. CABECERA PRINCIPAL Y HERRAMIENTA EXTERNA
+# 5. CABECERA PRINCIPAL Y HERRAMIENTA EXTERNA + CALCULADORA
 # ==========================================
-st.markdown("<h1 style='text-align: center; font-size: 2.8rem; margin-bottom: 0;'>🏛️ Escala | Consultoría Epresarial  Financiera</h1>", unsafe_allow_html=True)
+st.markdown("<h1 style='text-align: center; font-size: 2.8rem; margin-bottom: 0;'>🏛️ ESCALA FINANCE & INSURANCE</h1>", unsafe_allow_html=True)
 st.markdown("<p style='text-align: center; color: #D4AF37; font-size: 1.4rem; font-weight: bold; margin-top: 0;'>Tu consultor financiero de confianza</p>", unsafe_allow_html=True)
 st.write("")
 
-st.link_button(
-    "📊 Acceder a la Herramienta de Finanzas Personales (Golden Ledger)", 
-    "https://golden-ledger-ai-93.lovable.app/", 
-    use_container_width=True
-)
+col_tool1, col_tool2 = st.columns([4, 1])
+
+with col_tool1:
+    st.link_button(
+        "📊 Acceder a la Herramienta de Finanzas Personales (Golden Ledger)", 
+        "https://golden-ledger-ai-93.lovable.app/", 
+        use_container_width=True
+    )
+
+with col_tool2:
+    btn_calc = st.button("🧮 Calculadora", use_container_width=True)
+
+# Si hacen clic en el botón de la calculadora, abrimos un desplegable/expander o modal interactivo con una mini calculadora financiera de cuotas o intereses
+if btn_calc:
+    st.session_state['mostrar_calculadora'] = not st.session_state.get('mostrar_calculadora', False)
+
+if st.session_state.get('mostrar_calculadora', False):
+    with st.container():
+        st.markdown("""
+        <div class="card-corporativa" style="border-top: 5px solid #10B981;">
+            <h3>🧮 Simulador Rápido de Cuotas y Préstamos</h3>
+            <p style='color: #4A5568;'>Calcula de manera inmediata la cuota mensual estimada para tus necesidades de financiamiento de consumo o capital de trabajo.</p>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        c_calc1, c_calc2, c_calc3 = st.columns(3)
+        with c_calc1:
+            monto_prestamo = st.number_input("Monto del Crédito ($):", min_value=100.0, value=10000.0, step=500.0)
+        with c_calc2:
+            tasa_interes_anual = st.number_input("Tasa de Interés Anual (%):", min_value=1.0, value=15.0, step=0.5)
+        with c_calc3:
+            plazo_meses = st.selectbox("Plazo (Meses):", options=[12, 24, 36, 48, 60, 72], index=2)
+            
+        i_mensual = (tasa_interes_anual / 100) / 12
+        if i_mensual > 0:
+            cuota_mensual = monto_prestamo * (i_mensual * (1 + i_mensual)**plazo_meses) / ((1 + i_mensual)**plazo_meses - 1)
+        else:
+            cuota_mensual = monto_prestamo / plazo_meses
+            
+        total_pagar = cuota_mensual * plazo_meses
+        interes_total = total_pagar - monto_prestamo
+        
+        res1, res2, res3 = st.columns(3)
+        res1.metric("💵 Cuota Mensual Estimada", f"${cuota_mensual:,.2f}")
+        res2.metric("📈 Total Intereses", f"${interes_total:,.2f}")
+        res3.metric("💰 Monto Total a Pagar", f"${total_pagar:,.2f}")
+        st.write("")
+
 st.write("")
 
 # ==========================================
@@ -432,7 +475,7 @@ st.markdown("""
 st.markdown("""
 <div class="card-corporativa">
     <h3 style='margin-top:0;'>✨ Asesoría Patrimonial y Estrategia de Financiamiento</h3>
-    <p style='color: #4A5568; font-size: 1.1rem;'>Como consultor  especialista, conectamos tus metas con las mejores alternativas del ecosistema de manera independiente, mediante un análisis técnico riguroso y relaciones directas con proveedores institucionales.</p>
+    <p style='color: #4A5568; font-size: 1.1rem;'>Como Bróker especialista, conectamos tus metas con las mejores alternativas del ecosistema de manera independiente, mediante un análisis técnico riguroso y relaciones directas con proveedores institucionales.</p>
     <strong style='color: #0A2540;'>💼 Nuestra consultoría inicial no genera honorarios para ti</strong> (estos son cubiertos de manera directa por las firmas aliadas del mercado comercial).
 </div>
 """, unsafe_allow_html=True)
@@ -487,7 +530,7 @@ with col_izq:
             guardar_lead(nombre, cedula, telefono, ciudad, producto_interes)
             st.success("🎉 ¡Trámite ingresado con éxito en la plataforma Escala Finance & Insurance!")
             
-            texto_ws = f"Escala | Consultoría Epresarial  Financiera, he completado y autorizado mi pre-calificación en línea.\n\n" \
+            texto_ws = f"Hola Escala Finance & Insurance, he completado y autorizado mi pre-calificación en línea.\n\n" \
                        f"👤 *Consultante:* {nombre}\n" \
                        f"🪪 *Cédula:* {cedula}\n" \
                        f"📱 *Contacto:* {telefono}\n" \
@@ -504,7 +547,7 @@ with col_der:
     st.caption("Toca la fotografía de tu asesor para iniciar el flujo interactivo estructurado:")
     
     flujo_bot_whatsapp = (
-        "🏛️ [Escala | Consultoría Epresarial  Financiera - ASISTENTE VIRTUAL]\n\n"
+        "🏛️ [ESCALA FINANCE & INSURANCE - ASISTENTE VIRTUAL]\n\n"
         "🤖 ¡Hola! Bienvenido al canal interactivo de Escala. Estoy aquí para ingresar tu trámite de forma inmediata.\n\n"
         "Por favor, bríndame tus DATOS PERSONALES base respondiendo en una sola línea:\n"
         "• Nombre y Apellido Completo:\n"
@@ -546,7 +589,7 @@ with col_der:
 st.write("---")
 
 # ==========================================
-# 7. INDICADORES ECONÓMICOS EN TIEMPO REAL (YFINANCE)
+# 7. INDICADORES ECONÓMICOS EN TIEMPO REAL
 # ==========================================
 st.markdown("### 📊 Indicadores Económicos Dinámicos en Tiempo Real")
 st.caption("Datos conectados directamente a los movimientos de mercado bursátil global y commodities:")
@@ -556,15 +599,15 @@ def obtener_indicadores_tiempo_real():
     tickers_dict = {
         "S&P 500": "^GSPC",
         "NASDAQ 100": "^NDX",
-        "Petróleo WTI": "CL=F",
-        "Oro": "GC=F",
+        "Petróleo WTI": "USO",
+        "Oro": "GLD",
         "Bitcoin": "BTC-USD"
     }
     resultados = {}
     for nombre, ticker in tickers_dict.items():
         try:
             t = yf.Ticker(ticker)
-            hist = t.history(period="2d")
+            hist = t.history(period="5d")
             if not hist.empty and len(hist) >= 2:
                 precio_actual = hist['Close'].iloc[-1]
                 precio_anterior = hist['Close'].iloc[-2]
@@ -595,7 +638,7 @@ for i, (k, v) in enumerate(datos_mercado.items()):
 st.write("---")
 
 # ==========================================
-# 7.1. NUEVO MÓDULO: ACCESO A MERCADOS Y ACCIONES POR EMPRESAS
+# 7.1. MÓDULO: ACCESO A MERCADOS Y ACCIONES POR EMPRESAS
 # ==========================================
 st.markdown("### 🌐 Terminal de Mercados y Acciones por Empresas")
 st.caption("Consulta la evolución técnica, cotizaciones en vivo y enlaces oficiales a las bolsas de valores:")
@@ -605,7 +648,6 @@ tab_mercado1, tab_mercado2 = st.tabs(["🇺🇸 Acciones Principales (S&P 500 / 
 with tab_mercado1:
     st.markdown("#### Selector de Acciones Globales")
     
-    # Diccionario de empresas clave del S&P 500 y tecnología
     empresas_spp500 = {
         "Apple Inc. (AAPL)": "AAPL",
         "Microsoft Corporation (MSFT)": "MSFT",
@@ -624,7 +666,6 @@ with tab_mercado1:
         periodo_accion = st.selectbox("Rango de Evolución:", options=["1 Mes", "6 Meses", "1 Año", "5 Años"], index=2)
         
     ticker_seleccionado = empresas_spp500[empresa_seleccionada]
-    
     periodo_map = {"1 Mes": "1mo", "6 Meses": "6mo", "1 Año": "1y", "5 Años": "5y"}
     
     try:
