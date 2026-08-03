@@ -18,7 +18,7 @@ NUMERO_WHATSAPP = "593998076979"
 PASSWORD_DASHBOARD = "Escala2026" 
 
 st.set_page_config(
-    page_title="Escala Finance & Insurance | Consultoría Financiera y Corretaje", 
+    page_title="Escala | Consultoría Epresarial  Financiera", 
     page_icon="🏛️", 
     layout="wide"
 )
@@ -98,7 +98,7 @@ class PDFConsultoria(FPDF):
         self.set_y(-15)
         self.set_font("helvetica", "I", 8)
         self.set_text_color(150, 150, 150)
-        self.cell(0, 10, f"Pagina {self.page_no()}/{{nb}} | Uso Exclusivo - Escala Finance & Insurance", 0, 0, "C")
+        self.cell(0, 10, f"Pagina {self.page_no()}/{{nb}} | Uso Exclusivo - Escala | Consultoría Epresarial  Financiera", 0, 0, "C")
 
 def generar_grafico_radar():
     labels = ['Comercial', 'Financiero', 'Operativo', 'Legal & Gov']
@@ -133,7 +133,7 @@ def generar_pdf_mckinsey(fila_client):
                 return str(val) if pd.notna(val) else defecto
         return defecto
 
-    empresa = buscar_col(["empresa", "negocio", "organización"], "Escala Consulting (Kinetic Motor Studio)")
+    empresa = buscar_col(["empresa", "negocio", "organización"], "Escala | Consultoría Epresarial  Financiera (Kinetic Motor Studio)")
     representante = buscar_col(["nombre", "representante", "propietario"], "Jonathan Vaca")
     
     pdf = PDFConsultoria()
@@ -403,7 +403,7 @@ st.markdown("""
 # ==========================================
 # 5. CABECERA PRINCIPAL Y HERRAMIENTA EXTERNA
 # ==========================================
-st.markdown("<h1 style='text-align: center; font-size: 2.8rem; margin-bottom: 0;'>🏛️ ESCALA FINANCE & INSURANCE</h1>", unsafe_allow_html=True)
+st.markdown("<h1 style='text-align: center; font-size: 2.8rem; margin-bottom: 0;'>🏛️ Escala | Consultoría Epresarial  Financiera</h1>", unsafe_allow_html=True)
 st.markdown("<p style='text-align: center; color: #D4AF37; font-size: 1.4rem; font-weight: bold; margin-top: 0;'>Tu consultor financiero de confianza</p>", unsafe_allow_html=True)
 st.write("")
 
@@ -432,7 +432,7 @@ st.markdown("""
 st.markdown("""
 <div class="card-corporativa">
     <h3 style='margin-top:0;'>✨ Asesoría Patrimonial y Estrategia de Financiamiento</h3>
-    <p style='color: #4A5568; font-size: 1.1rem;'>Como Bróker especialista, conectamos tus metas con las mejores alternativas del ecosistema de manera independiente, mediante un análisis técnico riguroso y relaciones directas con proveedores institucionales.</p>
+    <p style='color: #4A5568; font-size: 1.1rem;'>Como consultor  especialista, conectamos tus metas con las mejores alternativas del ecosistema de manera independiente, mediante un análisis técnico riguroso y relaciones directas con proveedores institucionales.</p>
     <strong style='color: #0A2540;'>💼 Nuestra consultoría inicial no genera honorarios para ti</strong> (estos son cubiertos de manera directa por las firmas aliadas del mercado comercial).
 </div>
 """, unsafe_allow_html=True)
@@ -487,7 +487,7 @@ with col_izq:
             guardar_lead(nombre, cedula, telefono, ciudad, producto_interes)
             st.success("🎉 ¡Trámite ingresado con éxito en la plataforma Escala Finance & Insurance!")
             
-            texto_ws = f"Hola Escala Finance & Insurance, he completado y autorizado mi pre-calificación en línea.\n\n" \
+            texto_ws = f"Escala | Consultoría Epresarial  Financiera, he completado y autorizado mi pre-calificación en línea.\n\n" \
                        f"👤 *Consultante:* {nombre}\n" \
                        f"🪪 *Cédula:* {cedula}\n" \
                        f"📱 *Contacto:* {telefono}\n" \
@@ -504,7 +504,7 @@ with col_der:
     st.caption("Toca la fotografía de tu asesor para iniciar el flujo interactivo estructurado:")
     
     flujo_bot_whatsapp = (
-        "🏛️ [ESCALA FINANCE & INSURANCE - ASISTENTE VIRTUAL]\n\n"
+        "🏛️ [Escala | Consultoría Epresarial  Financiera - ASISTENTE VIRTUAL]\n\n"
         "🤖 ¡Hola! Bienvenido al canal interactivo de Escala. Estoy aquí para ingresar tu trámite de forma inmediata.\n\n"
         "Por favor, bríndame tus DATOS PERSONALES base respondiendo en una sola línea:\n"
         "• Nombre y Apellido Completo:\n"
