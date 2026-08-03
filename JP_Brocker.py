@@ -1,4 +1,4 @@
-import streamlit as str_app
+import streamlit as st
 import urllib.parse
 import sqlite3
 import pandas as pd
@@ -17,8 +17,8 @@ import yfinance as yf
 NUMERO_WHATSAPP = "593998076979" 
 PASSWORD_DASHBOARD = "Escala2026" 
 
-str_app.set_page_config(
-    page_title="Escala Consultoría Empresarial y Financiera", 
+st.set_page_config(
+    page_title="Escala  Consultoría Empresarial y Financiera ", 
     page_icon="🏛️", 
     layout="wide"
 )
@@ -98,7 +98,7 @@ class PDFConsultoria(FPDF):
         self.set_y(-15)
         self.set_font("helvetica", "I", 8)
         self.set_text_color(150, 150, 150)
-        self.cell(0, 10, f"Pagina {self.page_no()}/{{nb}} | Uso Exclusivo - Escala Consultoría Empresarial y Financiera", 0, 0, "C")
+        self.cell(0, 10, f"Pagina {self.page_no()}/{{nb}} | Uso Exclusivo -Escala  Consultoría Empresarial y Financiera ", 0, 0, "C")
 
 def generar_grafico_radar():
     labels = ['Comercial', 'Financiero', 'Operativo', 'Legal & Gov']
@@ -133,7 +133,7 @@ def generar_pdf_mckinsey(fila_client):
                 return str(val) if pd.notna(val) else defecto
         return defecto
 
-    empresa = buscar_col(["empresa", "negocio", "organización"], "Escala Consultoría Empresarial y Financiera")
+    empresa = buscar_col(["empresa", "negocio", "organización"], "Escala  Consultoría Empresarial y Financiera (Kinetic Motor Studio)")
     representante = buscar_col(["nombre", "representante", "propietario"], "Jonathan Vaca")
     
     pdf = PDFConsultoria()
@@ -157,8 +157,12 @@ def generar_pdf_mckinsey(fila_client):
     pdf.cell(0, 6, "Resumen Ejecutivo:", 0, 1, "L")
     pdf.set_font("helvetica", "", 9)
     pdf.set_text_color(50, 50, 50)
-    pdf.multi_cell(0, 4.5, "La empresa presenta una condicion de Vulnerabilidad Estructural Critica (Indice de Salud de Gestion: 28/100). El diagnostico revela una alta dependencia operativa del fundador y una tension severa en la liquidez a corto plazo.")
+    pdf.multi_cell(0, 4.5, "La empresa presenta una condicion de Vulnerabilidad Estructural Critica (Indice de Salud de Gestion: 28/100). El diagnostico revela una alta dependencia operativa del fundador y una tension severa en la liquidez a corto plazo, amenazando la sostenibilidad del negocio y obstaculizando la meta estrategica.")
     pdf.ln(4)
+    
+    pdf.set_font("helvetica", "B", 10)
+    pdf.set_text_color(10, 37, 64)
+    pdf.cell(0, 6, "1. Indice de Madurez de Gestion (Maturity Assessment)", 0, 1, "L")
     
     ruta_radar = generar_grafico_radar()
     pdf.image(ruta_radar, x=65, y=pdf.get_y(), w=75)
@@ -191,12 +195,77 @@ def generar_pdf_mckinsey(fila_client):
         pdf.cell(25, 5.5, punt, 1, 0, "C")
         pdf.cell(45, 5.5, estado, 1, 1, "C")
 
+    pdf.add_page()
+    pdf.set_font("helvetica", "B", 11)
+    pdf.set_text_color(10, 37, 64)
+    pdf.cell(0, 6, "2. Analisis Tecnico por Pilares (Diagnostico Profundo)", 0, 1, "L")
+    pdf.ln(2)
+    
+    pdf.set_font("helvetica", "B", 9)
+    pdf.cell(0, 5, "A. Pilar Financiero & Control de Caja", 0, 1, "L")
+    pdf.set_font("helvetica", "", 8.5)
+    pdf.set_text_color(50, 50, 50)
+    pdf.multi_cell(0, 4, "Se detecta una mezcla critica entre el patrimonio personal del fundador y las finanzas operativas de la compania, lo que distorsiona la visibilidad real de la rentabilidad. La empresa sufre de escasez recurrente de liquidez a corto plazo (\"cash crunch\") debido a la ausencia de un presupuesto de caja proyectado a 13 semanas.")
+    pdf.ln(3)
+    
+    pdf.set_font("helvetica", "B", 9)
+    pdf.set_text_color(10, 37, 64)
+    pdf.cell(0, 5, "B. Pilar Comercial & Estrategia de Mercado", 0, 1, "L")
+    pdf.set_font("helvetica", "", 8.5)
+    pdf.set_text_color(50, 50, 50)
+    pdf.multi_cell(0, 4, "El modelo de adquisicion descansa enteramente en la intuicion comercial y en esfuerzos de redes sociales sin un embudo (funnel) estructurado. La ausencia de un perfil de cliente ideal (avatar) documentado genera altos costos de adquisicion de clientes (CAC).")
+    pdf.ln(3)
+    
+    pdf.set_font("helvetica", "B", 9)
+    pdf.set_text_color(10, 37, 64)
+    pdf.cell(0, 5, "C. Pilar Operativo & Eficiencia de Procesos", 0, 1, "L")
+    pdf.set_font("helvetica", "", 8.5)
+    pdf.set_text_color(50, 50, 50)
+    pdf.multi_cell(0, 4, "El negocio exhibe el nivel maximo de dependencia operativa del fundador (5/5). La organizacion opera bajo un esquema de \"cultura de memoria\", donde ningun proceso clave cuenta con manuales o procedimientos documentados.")
+    pdf.ln(3)
+    
+    pdf.set_font("helvetica", "B", 9)
+    pdf.set_text_color(10, 37, 64)
+    pdf.cell(0, 5, "D. Pilar Legal & Gobierno Corporativo", 0, 1, "L")
+    pdf.set_font("helvetica", "", 8.5)
+    pdf.set_text_color(50, 50, 50)
+    pdf.multi_cell(0, 4, "Se identifican pendientes en obligaciones tributarias y una practica generalizada de operar mediante acuerdos de palabra con proveedores y clientes en lugar de contratos escritos y blindados.")
+
+    pdf.add_page()
+    pdf.set_font("helvetica", "B", 11)
+    pdf.set_text_color(10, 37, 64)
+    pdf.cell(0, 6, "3. Hoja de Ruta Estratégica (Plan de Trabajo 90 Dias)", 0, 1, "L")
+    pdf.ln(2)
+    
+    pdf.set_font("helvetica", "B", 9)
+    pdf.set_text_color(212, 175, 55)
+    pdf.cell(0, 5, "Fase 1: Estabilizacion de Urgencias y Caja (Mes 1)", 0, 1, "L")
+    pdf.set_font("helvetica", "", 8.5)
+    pdf.set_text_color(50, 50, 50)
+    pdf.multi_cell(0, 4, "Objetivo: Detener la quema de efectivo y blindar el patrimonio.\n- Establecer cuentas bancarias corporativas 100% separadas de las personales.\n- Implementar un Flujo de Caja Operativo diario a 13 semanas.\n- Auditoria tributaria expres para sanear pendientes fiscales.")
+    pdf.ln(3)
+    
+    pdf.set_font("helvetica", "B", 9)
+    pdf.set_text_color(212, 175, 55)
+    pdf.cell(0, 5, "Fase 2: Reingenieria Comercial y Claridad de Oferta (Mes 2)", 0, 1, "L")
+    pdf.set_font("helvetica", "", 8.5)
+    pdf.set_text_color(50, 50, 50)
+    pdf.multi_cell(0, 4, "Objetivo: Estructurar un motor de ventas predecible.\n- Definicion estricta del Avatar y propuesta de valor basada en margenes.\n- Diseno e implementacion de un embudo (funnel) comercial medible.\n- Estandarizacion de contratos base.")
+    pdf.ln(3)
+    
+    pdf.set_font("helvetica", "B", 9)
+    pdf.set_text_color(212, 175, 55)
+    pdf.cell(0, 5, "Fase 3: Estandarizacion y Desacoplamiento Operativo (Mes 3)", 0, 1, "L")
+    pdf.set_font("helvetica", "", 8.5)
+    pdf.set_text_color(50, 50, 50)
+    pdf.multi_cell(0, 4, "Objetivo: Reducir la dependencia del fundador y escalar con autonomia.\n- Documentacion de los 3 procesos core de entrega de servicio.\n- Automatizacion de flujos con herramientas en la nube.\n- Establecimiento de un cuadro de mando integral (KPIs).")
+    
     return BytesIO(pdf.output(dest='S'))
 
 # ==========================================
 # 4. IDENTIDAD VISUAL PREMIUM Y ANIMACIONES (CSS)
 # ==========================================
-str_app.markdown("""
+st.markdown("""
     <style>
     .stApp {
         background: linear-gradient(135deg, #FFFFFF 0%, #EBF4FC 100%);
@@ -271,6 +340,11 @@ str_app.markdown("""
         width: 500%;
         animation: slideAnimation 25s infinite linear;
     }
+    .slider-track-fast {
+        display: flex;
+        width: 300%;
+        animation: slideAnimationThree 15s infinite linear;
+    }
     .slide {
         width: 100%;
         position: relative;
@@ -314,55 +388,60 @@ str_app.markdown("""
         96% { transform: translateX(-80%); }
         100% { transform: translateX(0); }
     }
+    @keyframes slideAnimationThree {
+        0% { transform: translateX(0); }
+        28% { transform: translateX(0); }
+        33% { transform: translateX(-33.33%); }
+        61% { transform: translateX(-33.33%); }
+        66% { transform: translateX(-66.66%); }
+        94% { transform: translateX(-66.66%); }
+        100% { transform: translateX(0); }
+    }
     </style>
 """, unsafe_allow_html=True)
 
 # ==========================================
 # 5. CABECERA PRINCIPAL Y HERRAMIENTA EXTERNA + CALCULADORA & SCORING
 # ==========================================
-str_app.markdown("<h1 style='text-align: center; font-size: 2.8rem; margin-bottom: 0;'>🏛️ Escala Consultoría Empresarial y Financiera</h1>", unsafe_allow_html=True)
-str_app.markdown("<p style='text-align: center; color: #D4AF37; font-size: 1.4rem; font-weight: bold; margin-top: 0;'>Tu consultor financiero de confianza</p>", unsafe_allow_html=True)
-str_app.write("")
+st.markdown("<h1 style='text-align: center; font-size: 2.8rem; margin-bottom: 0;'>🏛️ Escala  Consultoría Empresarial y Financiera </h1>", unsafe_allow_html=True)
+st.markdown("<p style='text-align: center; color: #D4AF37; font-size: 1.4rem; font-weight: bold; margin-top: 0;'>Tu consultor financiero de confianza</p>", unsafe_allow_html=True)
+st.write("")
 
-tab_principal_herramienta, tab_principal_calculadora = str_app.tabs(["🚀 Herramienta Financiera (Golden Ledger)", "🧮 Simulador, Capacidad de Pago y Scoring"])
+# Sección superior organizada mediante solapas incluyendo la nueva herramienta de Capacidad de Pago y Scoring
+tab_principal_herramienta, tab_principal_calculadora = st.tabs(["🚀 Herramienta Financiera (Golden Ledger)", "🧮 Simulador, Capacidad de Pago y Scoring"])
 
 with tab_principal_herramienta:
-    str_app.markdown("""
+    st.markdown("""
     <div class="card-corporativa">
         <h3>📊 Ecosistema de Finanzas Personales & Corporativas</h3>
         <p style='color: #4A5568;'>Accede directamente a nuestra plataforma especializada en control de activos, presupuestos y proyecciones de liquidez.</p>
     </div>
     """, unsafe_allow_html=True)
-    str_app.link_button(
+    st.link_button(
         "📊 Abrir Herramienta de Finanzas Personales (Golden Ledger)", 
         "https://golden-ledger-ai-93.lovable.app/", 
         use_container_width=True
     )
 
 with tab_principal_calculadora:
-    str_app.markdown("""
+    st.markdown("""
     <div class="card-corporativa" style="border-top: 5px solid #10B981;">
-        <h3>🧮 Simulador Financiero Avanzado (Dependientes e Independientes RUC)</h3>
-        <p style='color: #4A5568;'>Emulación exacta del simulador del archivo Excel. Realiza cálculos para clientes Dependientes (Sueldo) e Independientes (RUC con listado completo de la columna A) y evalúa su capacidad de pago y scoring.</p>
+        <h3>🧮 Simulador Avanzado: Cuotas, Capacidad de Pago y Scoring</h3>
+        <p style='color: #4A5568;'>Calcula tu cuota mensual estimada, evalúa tu capacidad real de endeudamiento (CDP) y obtén una estimación de tu perfil de scoring crediticio.</p>
     </div>
     """, unsafe_allow_html=True)
     
-    subtab_sim1, subtab_sim2_dep, subtab_sim2_ind, subtab_sim3 = str_app.tabs([
-        "💡 Simulador de Crédito", 
-        "👔 Ingresos Dependientes (Sueldos)", 
-        "🏢 Ingresos Independientes (RUC Completo)", 
-        "📊 Análisis de Scoring & Calificación"
-    ])
+    subtab_sim1, subtab_sim2 = st.tabs(["💡 Simulador y Capacidad de Pago (CDP)", "📊 Análisis de Scoring & Calificación"])
     
     with subtab_sim1:
-        str_app.markdown("#### Parámetros del Crédito")
-        c_calc1, c_calc2, c_calc3 = str_app.columns(3)
+        st.markdown("#### 1. Datos para la Simulación de Crédito")
+        c_calc1, c_calc2, c_calc3 = st.columns(3)
         with c_calc1:
-            monto_prestamo = str_app.number_input("Monto del Crédito Deseado ($):", min_value=100.0, value=10000.0, step=500.0, key="monto_credito_input")
+            monto_prestamo = st.number_input("Monto del Crédito Deseado ($):", min_value=100.0, value=10000.0, step=500.0, key="monto_credito_input")
         with c_calc2:
-            tasa_interes_anual = str_app.number_input("Tasa de Interés Anual (%):", min_value=1.0, value=15.0, step=0.5, key="tasa_credito_input")
+            tasa_interes_anual = st.number_input("Tasa de Interés Anual (%):", min_value=1.0, value=15.0, step=0.5, key="tasa_credito_input")
         with c_calc3:
-            plazo_meses = str_app.selectbox("Plazo (Meses):", options=[12, 24, 36, 48, 60, 72], index=2, key="plazo_credito_input")
+            plazo_meses = st.selectbox("Plazo (Meses):", options=[12, 24, 36, 48, 60, 72], index=2, key="plazo_credito_input")
             
         i_mensual = (tasa_interes_anual / 100) / 12
         if i_mensual > 0:
@@ -373,124 +452,59 @@ with tab_principal_calculadora:
         total_pagar = cuota_mensual * plazo_meses
         interes_total = total_pagar - monto_prestamo
         
-        res1, res2, res3 = str_app.columns(3)
+        res1, res2, res3 = st.columns(3)
         res1.metric("💵 Cuota Mensual Estimada", f"${cuota_mensual:,.2f}")
         res2.metric("📈 Total Intereses", f"${interes_total:,.2f}")
         res3.metric("💰 Monto Total a Pagar", f"${total_pagar:,.2f}")
+        
+        st.markdown("---")
+        st.markdown("#### 2. Evaluación de Capacidad de Pago (CDP) y Monto Sugerido")
+        st.caption("Introduce tus ingresos y gastos fijos mensuales para determinar tu cuota disponible y el monto óptimo de endeudamiento:")
+        
+        cp_col1, cp_col2, cp_col3 = st.columns(3)
+        with cp_col1:
+            ingresos_netos = st.number_input("Ingresos Mensuales Netos ($):", min_value=0.0, value=1500.0, step=100.0, key="ingresos_netos_cp")
+        with cp_col2:
+            egresos_fijos = st.number_input("Egresos / Gastos Fijos Mensuales ($):", min_value=0.0, value=500.0, step=50.0, key="egresos_fijos_cp")
+        with cp_col3:
+            otras_cuotas = st.number_input("Pago de Otras Deudas / Créditos Vigentes ($):", min_value=0.0, value=200.0, step=50.0, key="otras_cuotas_cp")
+            
+        # Cuota Disponible para Pago (CDP) - por lo general se permite comprometer hasta el 40-50% del ingreso remanente
+        excedente_mensual = ingresos_netos - egresos_fijos - otras_cuotas
+        # Capacidad máxima recomendada (40% del ingreso neto o el excedente disponible)
+        cdp_sugerida = min(excedente_mensual * 0.8, ingresos_netos * 0.45)
+        if cdp_sugerida < 0:
+            cdp_sugerida = 0.0
+            
+        # Cálculo del monto sugerido mediante la fórmula de valor presente (PV) basada en la CDP
+        if i_mensual > 0 and cdp_sugerida > 0:
+            monto_sugerido = cdp_sugerida * (1 - (1 + i_mensual)**(-plazo_meses)) / i_mensual
+        else:
+            monto_sugerido = cdp_sugerida * plazo_meses
 
-    with subtab_sim2_dep:
-        str_app.markdown("#### 👔 Cálculo de Capacidad de Pago para Clientes Dependientes (Relación de Dependencia)")
-        str_app.caption("Emulación de ingresos por roles de pago, aportes al IESS y deducciones de obligaciones financieras vigentes.")
+        cdp_res1, cdp_res2, cdp_res3 = st.columns(3)
+        cdp_res1.metric("💼 Excedente Mensual Neto", f"${excedente_mensual:,.2f}")
+        cdp_res2.metric("🛡️ Cuota Disponible (CDP)", f"${cdp_sugerida:,.2f}")
+        cdp_res3.metric("🎯 Monto Sugerido de Crédito", f"${monto_sugerido:,.2f}")
         
-        dep_c1, dep_c2 = str_app.columns(2)
-        with dep_c1:
-            sueldo_basico_mensual = str_app.number_input("Sueldo Nominal Mensual ($):", min_value=0.0, value=1200.0, step=100.0, key="dep_sueldo_input")
-            otros_ingresos_fijos = str_app.number_input("Otros Ingresos Fijos (Horas extras / Comisiones promedio) [$]:", min_value=0.0, value=150.0, step=50.0, key="dep_otros_input")
-        with dep_c2:
-            descuentos_iess = sueldo_basico_mensual * 0.0945
-            str_app.info(f"📌 **Aporte Personal IESS (9.45%):** `- ${descuentos_iess:,.2f}`")
-            otros_egresos_mes = str_app.number_input("Otras Obligaciones / Descuentos Mensuales en Rol [$]:", min_value=0.0, value=100.0, step=50.0, key="dep_egresos_input")
-            
-        ingreso_neto_dependiente = sueldo_basico_mensual + otros_ingresos_fijos - descuentos_iess - otros_egresos_mes
-        
-        str_app.markdown("---")
-        str_app.markdown("#### Resultado del Análisis de Capacidad (Dependiente)")
-        
-        dres1, dres2, dres3 = str_app.columns(3)
-        dres1.metric("💼 Ingresos Totales Brutos", f"${sueldo_basico_mensual + otros_ingresos_fijos:,.2f}")
-        dres2.metric("📉 Deducciones Ley / IESS", f"${descuentos_iess + otros_egresos_mes:,.2f}")
-        dres3.metric("✨ Ingreso Neto Disponible", f"${ingreso_neto_dependiente:,.2f}")
+        if cuota_mensual <= cdp_sugerida:
+            st.success("✅ **Resultado de Viabilidad:** Tu capacidad de pago cubre holgadamente la cuota estimada para el monto de crédito seleccionado.")
+        else:
+            st.warning("⚠️ **Alerta de Viabilidad:** La cuota estimada supera tu Cuota Disponible para Pago (CDP) recomendada. Te sugerimos ampliar el plazo o ajustar el monto del crédito.")
 
-    with subtab_sim2_ind:
-        str_app.markdown("#### 🏢 Cálculo de Ingresos Netos para Clientes Independientes (Actividad Comercial / RUC - Columna A Completa)")
-        str_app.caption("Listado completo de todos los códigos y actividades de la Columna A del archivo Excel para aplicar el margen de rentabilidad H30 exacto.")
+    with subtab_sim2:
+        st.markdown("#### 📊 Simulador y Diagnóstico de Scoring Crediticio")
+        st.caption("Responde las siguientes variables clave para estimar tu puntaje interno y probabilidad de aprobación ante instituciones financieras aliadas:")
         
-        @str_app.cache_data
-        def cargar_tabla_rentabilidades_completa():
-            return pd.DataFrame({
-                "Codigo_RUC": [
-                    "A01", "A02", "B05", "C10", "C11", "D35", "F41", "F43", "G45", "G46", 
-                    "G47", "H55", "I56", "J58", "J62", "K64", "L68", "M69", "M70", "M71", 
-                    "N79", "O84", "P85", "Q86", "R90", "S95", "S96"
-                ],
-                "Actividad_Comercial": [
-                    "Agricultura, ganadería, silvicultura y pesca",
-                    "Explotación de minas y canteras",
-                    "Aprovisionamiento de petróleo y minería metálica",
-                    "Manufactura e Industria de Transformación",
-                    "Elaboración de bebidas y productos de tabaco",
-                    "Suministro de electricidad, gas, vapor y aire acondicionado",
-                    "Construcción y obras civiles especializadas",
-                    "Actividades especializadas de construcción",
-                    "Comercio, mantenimiento y reparación de vehículos automotores",
-                    "Comercio al por mayor y comisión",
-                    "Comercio al por mayor y al por menor (Venta de mercadería general)",
-                    "Hoteles y servicios de alojamiento turístico",
-                    "Restaurantes, bares y servicios de provisión de alimentos",
-                    "Edición, software y actividades de programación",
-                    "Desarrollo de sistemas informáticos y consultoría tecnológica",
-                    "Servicios financieros, bancarios y auxiliares",
-                    "Actividades inmobiliarias con bienes propios o alquilados",
-                    "Actividades jurídicas y de contabilidad",
-                    "Actividades de gestión, consultoría administrativa y técnica",
-                    "Arquitectura, ingeniería y ensayos técnicos",
-                    "Agencias de viajes y servicios de reservaciones",
-                    "Administración pública, defensa y seguridad social",
-                    "Enseñanza, educación inicial, media y superior",
-                    "Actividades de atención de la salud humana y asistencia social",
-                    "Actividades artísticas, de entretenimiento y recreativas",
-                    "Reparación de ordenadores y efectos personales",
-                    "Otras actividades de servicios personales y profesionales diversos"
-                ],
-                "Margen_Rentabilidad": [
-                    0.25, 0.20, 0.18, 0.30, 0.28, 0.15, 0.20, 0.22, 0.30, 0.25, 
-                    0.25, 0.40, 0.35, 0.55, 0.60, 0.15, 0.35, 0.50, 0.50, 0.45, 
-                    0.30, 0.10, 0.40, 0.45, 0.35, 0.40, 0.60
-                ]
-            })
-        
-        df_rent = cargar_tabla_rentabilidades_completa()
-        
-        ind_col1, ind_col2 = str_app.columns(2)
-        with ind_col1:
-            actividad_elegida = str_app.selectbox(
-                "Selecciona la Actividad Comercial según RUC (Columna A):", 
-                options=df_rent["Actividad_Comercial"].tolist(), 
-                key="select_act_ruc_completo"
-            )
-            fila_act = df_rent[df_rent["Actividad_Comercial"] == actividad_elegida].iloc[0]
-            codigo_ruc_val = fila_act["Codigo_RUC"]
-            margen_h30 = float(fila_act["Margen_Rentabilidad"])
-            
-            str_app.info(f"📌 **Código RUC (Columna A):** `{codigo_ruc_val}` | **Margen de Utilidad (H30):** `{margen_h30*100:.1f}%`")
-            
-        with ind_col2:
-            ingreso_bruto_d23 = str_app.number_input("Ingresos Brutos / Ventas Mensuales (D23) [$]:", min_value=0.0, value=3000.0, step=200.0, key="ingreso_d23_input")
-            
-        ingreso_neto_ajustado = ingreso_bruto_d23 * (1 - margen_h30)
-        
-        str_app.markdown("---")
-        str_app.markdown("#### Resultado del Análisis de Capacidad (Independiente)")
-        
-        cp_ind1, cp_ind2, cp_ind3 = str_app.columns(3)
-        cp_ind1.metric("💵 Ingresos Brutos (D23)", f"${ingreso_bruto_d23:,.2f}")
-        cp_ind2.metric("📉 Gastos Operativos Estimados", f"${ingreso_bruto_d23 * margen_h30:,.2f}")
-        cp_ind3.metric("💼 Ingreso Neto Ajustado Real", f"${ingreso_neto_ajustado:,.2f}")
-        
-        str_app.caption("Este ingreso neto ajustado refleja con precisión la estructura operativa declarada en los formatos estándar de evaluación.")
-
-    with subtab_sim3:
-        str_app.markdown("#### 📊 Simulador y Diagnóstico de Scoring Crediticio")
-        str_app.caption("Responde las siguientes variables clave para estimar tu puntaje interno y probabilidad de aprobación:")
-        
-        sc_col1, sc_col2 = str_app.columns(2)
+        sc_col1, sc_col2 = st.columns(2)
         with sc_col1:
-            historial_buro = str_app.selectbox("Historial en Buró de Crédito:", options=["Excelente (Sin atrasos)", "Bueno (Atrasos menores < 30 días)", "Regular (Atrasos entre 30 y 90 días)", "Crítico (Atrasos > 90 días / Cartera castigada)"], index=0, key="score_buro_key")
-            estabilidad_laboral = str_app.selectbox("Estabilidad Laboral / Actividad Comercial:", options=["Dependiente > 2 años / Negocio formal > 3 años", "Dependiente 1-2 años / Negocio 1-3 años", "Dependiente < 1 año / Negocio < 1 año", "Informal / Sin ingresos fijos comprobables"], index=0, key="score_lab_key")
+            historial_buro = st.selectbox("Historial en Buró de Crédito:", options=["Excelente (Sin atrasos)", "Bueno (Atrasos menores < 30 días)", "Regular (Atrasos entre 30 y 90 días)", "Crítico (Atrasos > 90 días / Cartera castigada)"], index=0)
+            estabilidad_laboral = st.selectbox("Estabilidad Laboral / Actividad Comercial:", options=["Dependiente > 2 años / Negocio formal > 3 años", "Dependiente 1-2 años / Negocio 1-3 años", "Dependiente < 1 año / Negocio < 1 año", "Informal / Sin ingresos fijos comprobables"], index=0)
         with sc_col2:
-            nivel_endeudamiento_actual = str_app.selectbox("Ratio de Endeudamiento Actual (Debt-to-Income):", options=["Menor al 20%", "Entre 20% y 40%", "Entre 40% y 60%", "Mayor al 60%"], index=1, key="score_end_key")
-            garantias_respaldo = str_app.selectbox("Garantías o Respaldo Patrimonial:", options=["Bienes raíces / Inversiones líquidas", "Vehículo propio / Garante solvente", "Sin garantías o avales sólidos"], index=0, key="score_gar_key")
+            nivel_endeudamiento_actual = st.selectbox("Ratio de Endeudamiento Actual (Debt-to-Income):", options=["Menor al 20%", "Entre 20% y 40%", "Entre 40% y 60%", "Mayor al 60%"], index=1)
+            garantias_respaldo = st.selectbox("Garantías o Respaldo Patrimonial:", options=["Bienes raíces / Inversiones líquidas", "Vehículo propio / Garante solvente", "Sin garantías o avales sólidos"], index=0)
             
+        # Puntuación algorítmica ponderada (Score de 0 a 1000)
         score_base = 350
         if "Excelente" in historial_buro: score_base += 300
         elif "Bueno" in historial_buro: score_base += 200
@@ -511,24 +525,24 @@ with tab_principal_calculadora:
         elif "Vehículo" in garantias_respaldo: score_base += 50
         else: score_base += 20
         
-        str_app.write("")
-        str_app.markdown(f"### 📈 Puntaje de Scoring Estimado: **{score_base} / 1000 Puntos**")
+        st.write("")
+        st.markdown(f"### 📈 Puntaje de Scoring Estimado: **{score_base} / 1000 Puntos**")
         
         if score_base >= 750:
-            str_app.success("🌟 **Perfil Crediticio: EXCELENTE (AAA).** Alta probabilidad de aprobación inmediata con tasas preferenciales en el sistema financiero.")
+            st.success("🌟 **Perfil Crediticio: EXCELENTE (AAA).** Alta probabilidad de aprobación inmediata con tasas preferenciales en el sistema financiero.")
         elif score_base >= 600:
-            str_app.info("👍 **Perfil Crediticio: BUENO (AA / A).** Elegible para la mayoría de productos de consumo y capital de trabajo con condiciones estándar.")
+            st.info("👍 **Perfil Crediticio: BUENO (AA / A).** Elegible para la mayoría de productos de consumo y capital de trabajo con condiciones estándar.")
         elif score_base >= 450:
-            str_app.warning("⚠️ **Perfil Crediticio: REGULAR (B / C).** Requiere estructuración de garantías adicionales o saneamiento de obligaciones previas.")
+            st.warning("⚠️ **Perfil Crediticio: REGULAR (B / C).** Requiere estructuración de garantías adicionales o saneamiento de obligaciones previas.")
         else:
-            str_app.error("🚨 **Perfil Crediticio: RIESGOSO / CRITICO.** Necesita asesoría especializada de reestructuración financiera antes de ingresar la solicitud.")
+            st.error("🚨 **Perfil Crediticio: RIESGOSO / CRITICO.** Necesita asesoría especializada de reestructuración financiera antes de ingresar la solicitud.")
 
-str_app.write("")
+st.write("")
 
 # ==========================================
 # 6. BANNER ROTATIVO INTERACTIVO DE SERVICIOS
 # ==========================================
-str_app.markdown("""
+st.markdown("""
 <div class="slider-container">
     <div class="slider-track">
         <div class="slide"><img src="https://images.unsplash.com/photo-1591696205602-2f950c417cb9?auto=format&fit=crop&w=1200&h=300&q=72"><div class="slide-text"><h2>Servicio de Asesoría Financiera Corporativa</h2><p>Estructuración técnica independiente de soluciones de liquidez.</p></div></div>
@@ -540,15 +554,15 @@ str_app.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
-str_app.markdown("""
+st.markdown("""
 <div class="card-corporativa">
     <h3 style='margin-top:0;'>✨ Asesoría Patrimonial y Estrategia de Financiamiento</h3>
-    <p style='color: #4A5568; font-size: 1.1rem;'>Como Bróker especialista, conectamos tus metas con las mejores alternativas del ecosistema de manera independiente, mediante un análisis técnico riguroso.</p>
-    <strong style='color: #0A2540;'>💼 Nuestra consultoría inicial no genera honorarios para ti</strong>.
+    <p style='color: #4A5568; font-size: 1.1rem;'>Como Bróker especialista, conectamos tus metas con las mejores alternativas del ecosistema de manera independiente, mediante un análisis técnico riguroso y relaciones directas con proveedores institucionales.</p>
+    <strong style='color: #0A2540;'>💼 Nuestra consultoría inicial no genera honorarios para ti</strong> (estos son cubiertos de manera directa por las firmas aliadas del mercado comercial).
 </div>
 """, unsafe_allow_html=True)
 
-str_app.write("---")
+st.write("---")
 
 servicios_escala = [
     "1️⃣ Servicio de Asesoría para Financiamiento Educativo y Maestrías",
@@ -558,45 +572,45 @@ servicios_escala = [
     "5️⃣ Servicio de Asesoría en Seguros (Vehicular, Médico o Protección familiar y Colectiva)"
 ]
 
-col_izq, col_der = str_app.columns([1.1, 0.9])
+col_izq, col_der = st.columns([1.1, 0.9])
 
 with col_izq:
-    str_app.markdown("### 📋 Pre-Calificación de Perfil")
-    str_app.caption("Introduce tus datos para ingresar el trámite en nuestro sistema en línea:")
+    st.markdown("### 📋 Pre-Calificación de Perfil")
+    st.caption("Introduce tus datos para ingresar el trámite en nuestro sistema en línea:")
     
-    with str_app.form(key="formulario_leads", clear_on_submit=True):
-        c1, c2 = str_app.columns(2)
+    with st.form(key="formulario_leads", clear_on_submit=True):
+        c1, c2 = st.columns(2)
         with c1:
-            nombre = str_app.text_input("👤 Nombre Completo:", placeholder="Ej: Ec. Carlos Mendoza")
+            nombre = st.text_input("👤 Nombre Completo:", placeholder="Ej: Ec. Carlos Mendoza")
         with c2:
-            cedula = str_app.text_input("🪪 Número de Cédula:", max_chars=10, placeholder="Ej: 100xxxxxxx")
+            cedula = st.text_input("🪪 Número de Cédula:", max_chars=10, placeholder="Ej: 100xxxxxxx")
             
-        c3, c4 = str_app.columns(2)
+        c3, c4 = st.columns(2)
         with c3:
-            telefono = str_app.text_input("📱 Celular / WhatsApp:", placeholder="Ej: 099xxxxxxx")
+            telefono = st.text_input("📱 Celular / WhatsApp:", placeholder="Ej: 099xxxxxxx")
         with c4:
-            ciudad = str_app.text_input("📍 Ciudad de Residencia:", placeholder="Ej: Ibarra / Quito")
+            ciudad = st.text_input("📍 Ciudad de Residencia:", placeholder="Ej: Ibarra / Quito")
             
         opciones_formulario = [s.split("para ")[-1] if "para " in s else s.split("en ")[-1] for s in servicios_escala]
-        producto_interes = str_app.selectbox("🎯 Solución Técnica de Interés:", options=opciones_formulario)
+        producto_interes = st.selectbox("🎯 Solución Técnica de Interés:", options=opciones_formulario)
         
-        str_app.markdown("""
+        st.markdown("""
         <p style='font-size: 0.82rem; color: #6B7280; text-align: justify; line-height: 1.25;'>
-            *Al presionar el botón inferior, usted otorga su <strong>consentimiento expreso</strong> para el tratamiento de sus datos personales.*
+            *Al presionar el botón inferior, usted otorga su <strong>consentimiento expreso, voluntario e informado</strong> para el tratamiento de sus datos personales. Autoriza a Escala Finance & Insurance a almacenar su expediente y procesar la información en plataformas de análisis financiero exclusivamente para este trámite.*
         </p>
         """, unsafe_allow_html=True)
         
-        str_app.write("")
-        boton_enviar = str_app.form_submit_button("Ingresar Trámite Oficial 🚀")
+        st.write("")
+        boton_enviar = st.form_submit_button("Ingresar Trámite Oficial 🚀")
 
     if boton_enviar:
         if not nombre or not cedula or not telefono:
-            str_app.error("⚠️ Los campos Nombre, Cédula y Teléfono son estrictamente obligatorios.")
+            st.error("⚠️ Los campos Nombre, Cédula y Teléfono son estrictamente obligatorios.")
         elif len(cedula) < 10 or not cedula.isdigit():
-            str_app.error("⚠️ Documento de identidad no válido (Debe contener 10 números).")
+            st.error("⚠️ Documento de identidad no válido (Debe contener 10 números).")
         else:
             guardar_lead(nombre, cedula, telefono, ciudad, producto_interes)
-            str_app.success("🎉 ¡Trámite ingresado con éxito en la plataforma Escala Consultoría Empresarial y Financiera!")
+            st.success("🎉 ¡Trámite ingresado con éxito en la plataforma Escala  Consultoría Empresarial y Financiera !")
             
             texto_ws = f"Hola Escala Finance & Insurance, he completado y autorizado mi pre-calificación en línea.\n\n" \
                        f"👤 *Consultante:* {nombre}\n" \
@@ -604,36 +618,47 @@ with col_izq:
                        f"📱 *Contacto:* {telefono}\n" \
                        f"📍 *Ciudad:* {ciudad}\n" \
                        f"🎯 *Línea:* Asesoría en {producto_interes}\n\n" \
-                       f"📜 *Estado:* Trámite ingresado con éxito."
+                       f"📜 *Estado:* Trámite ingresado con éxito. Consentimiento de datos corporativos aprobado."
             
             url_whatsapp = f"https://api.whatsapp.com/send?phone={NUMERO_WHATSAPP}&text={urllib.parse.quote(texto_ws)}"
-            str_app.balloons()
-            str_app.link_button("🟢 Validar Identidad vía WhatsApp", url_whatsapp, type="primary")
+            st.balloons()
+            st.link_button("🟢 Validar Identidad vía WhatsApp", url_whatsapp, type="primary")
 
 with col_der:
-    str_app.markdown("### 🤖 Asesor Ejecutivo Virtual")
-    str_app.caption("Toca la fotografía de tu asesor para iniciar el flujo interactivo estructurado:")
+    st.markdown("### 🤖 Asesor Ejecutivo Virtual")
+    st.caption("Toca la fotografía de tu asesor para iniciar el flujo interactivo estructurado:")
     
     flujo_bot_whatsapp = (
-        "🏛️ [Escala Consultoría Empresarial y Financiera - ASISTENTE VIRTUAL]\n\n"
-        "🤖 ¡Hola! Bienvenido al canal interactivo de Escala.\n\n"
+        "🏛️ [Escala  Consultoría Empresarial y Financiera  - ASISTENTE VIRTUAL]\n\n"
+        "🤖 ¡Hola! Bienvenido al canal interactivo de Escala. Estoy aquí para ingresar tu trámite de forma inmediata.\n\n"
         "Por favor, bríndame tus DATOS PERSONALES base respondiendo en una sola línea:\n"
         "• Nombre y Apellido Completo:\n"
         "• Número de Cédula (10 dígitos):\n"
         "• Celular de Contacto:\n"
-        "• Ciudad de Residencia:\n"
+        "• Ciudad de Residencia:\n\n"
+        "-----------------------------------------\n"
+        "📥 [MENSAJE DE RESPUESTA AUTOMÁTICA DE ESCALA]:\n"
+        "¡Excelente! Tus datos han sido recibidos de forma preliminar. A continuación, selecciona el Servicio de Asesoría técnica que requieres respondiendo únicamente con el NÚMERO correspondiente:\n\n"
+        f"{servicios_escala[0]}\n"
+        f"{servicios_escala[1]}\n"
+        f"{servicios_escala[2]}\n"
+        f"{servicios_escala[3]}\n"
+        f"{servicios_escala[4]}\n\n"
+        "-----------------------------------------\n"
+        "📜 [PROTECCIÓN DE DATOS Y AUTORIZACIÓN DE SCORING]:\n"
+        "Al completar este flujo, otorgo mi consentimiento expreso para el tratamiento de mis datos personales y AUTORIZO de manera irrevocable a Escala Finance & Insurance para que realice las revisiones técnicas de mi perfil en las plataformas de Scoring y Buró crediticio vigentes. Con esto, mi trámite queda OFICIALMENTE INGRESADO en el sistema."
     )
     
     url_flujo_completo = f"https://api.whatsapp.com/send?phone={NUMERO_WHATSAPP}&text={urllib.parse.quote(flujo_bot_whatsapp)}"
     
-    str_app.markdown(f"""
+    st.markdown(f"""
     <a href="{url_flujo_completo}" target="_blank" style="text-decoration: none; color: inherit;">
         <div class="ejecutivo-box">
             <img class="ejecutivo-avatar" src="{URL_FOTO_ASESOR}">
             <h4 style="margin: 0; color: #0A2540; font-size: 1.25rem;">Ec. Jonathan Vaca Cruz</h4>
             <p style="margin: 3px 0 10px 0; color: #10B981; font-weight: bold; font-size: 0.9rem;">💼 Broker & Consultor Financiero Senior</p>
             <div style="background-color: #F0F4F8; padding: 12px; border-radius: 8px; font-size: 0.88rem; color: #374151; text-align: justify; border-left: 3px solid #10B981;">
-                💬 <strong>¿Deseas iniciar el flujo por WhatsApp?</strong> Toca mi fotografía para abrir el chat interactivo.
+                💬 <strong>¿Deseas iniciar el flujo por WhatsApp?</strong> Toca mi fotografía o el botón inferior para abrir el chat interactivo. Podrás ingresar tus datos personales, seleccionar el servicio corporativo del menú numerado y autorizar de forma segura la revisión en plataformas de scoring. ¡Tu trámite quedará ingresado de inmediato!
             </div>
             <br>
             <span style="background-color: #10B981; color: white; padding: 8px 18px; border-radius: 20px; font-weight: bold; font-size: 0.85rem; display: inline-block; box-shadow: 0 3px 6px rgba(16,185,129,0.3);">
@@ -643,15 +668,15 @@ with col_der:
     </a>
     """, unsafe_allow_html=True)
 
-str_app.write("---")
+st.write("---")
 
 # ==========================================
-# 7. INDICADORES ECONÓMICOS Y MERCADOS
+# 7. INDICADORES ECONÓMICOS EN TIEMPO REAL
 # ==========================================
-str_app.markdown("### 📊 Indicadores Económicos Dinámicos en Tiempo Real")
-str_app.caption("Datos conectados directamente a los movimientos de mercado bursátil global y commodities:")
+st.markdown("### 📊 Indicadores Económicos Dinámicos en Tiempo Real")
+st.caption("Datos conectados directamente a los movimientos de mercado bursátil global y commodities:")
 
-@str_app.cache_data(ttl=300)
+@st.cache_data(ttl=300)
 def obtener_indicadores_tiempo_real():
     tickers_dict = {
         "S&P 500": "^GSPC",
@@ -678,44 +703,256 @@ def obtener_indicadores_tiempo_real():
 
 datos_mercado = obtener_indicadores_tiempo_real()
 
-m1, m2, m3, m4, m5 = str_app.columns(5)
+m1, m2, m3, m4, m5 = st.columns(5)
 for i, (k, v) in enumerate(datos_mercado.items()):
     val, delta = v
-    if i == 0: m1.metric(label=f"📈 {k}", value=val, delta=delta)
-    elif i == 1: m2.metric(label=f"💻 {k}", value=val, delta=delta)
-    elif i == 2: m3.metric(label=f"🛢️ {k}", value=val, delta=delta)
-    elif i == 3: m4.metric(label=f"🥇 {k}", value=val, delta=delta)
-    elif i == 4: m5.metric(label=f"🪙 {k}", value=val, delta=delta)
+    if i == 0:
+        m1.metric(label=f"📈 {k}", value=val, delta=delta)
+    elif i == 1:
+        m2.metric(label=f"💻 {k}", value=val, delta=delta)
+    elif i == 2:
+        m3.metric(label=f"🛢️ {k}", value=val, delta=delta)
+    elif i == 3:
+        m4.metric(label=f"🥇 {k}", value=val, delta=delta)
+    elif i == 4:
+        m5.metric(label=f"🪙 {k}", value=val, delta=delta)
 
-str_app.write("---")
+st.write("---")
 
 # ==========================================
-# 8. PANEL DE ADMINISTRACIÓN
+# 7.1. MÓDULO: ACCESO A MERCADOS Y ACCIONES POR EMPRESAS
 # ==========================================
-with str_app.expander("🔒 Acceso a Panel de Administración y Informes"):
-    password_ingresada = str_app.text_input("Contraseña de Administrador:", type="password", key="pwd_admin_key")
+st.markdown("### 🌐 Terminal de Mercados y Acciones por Empresas")
+st.caption("Consulta la evolución técnica, cotizaciones en vivo y enlaces oficiales a las bolsas de valores:")
+
+tab_mercado1, tab_mercado2 = st.tabs(["🇺🇸 Acciones Principales (S&P 500 / Global)", "🏛️ Bolsas de Valores e Institucionales"])
+
+with tab_mercado1:
+    st.markdown("#### Selector de Acciones Globales")
+    
+    empresas_spp500 = {
+        "Apple Inc. (AAPL)": "AAPL",
+        "Microsoft Corporation (MSFT)": "MSFT",
+        "NVIDIA Corporation (NVDA)": "NVDA",
+        "Amazon.com Inc. (AMZN)": "AMZN",
+        "Alphabet Inc. Google (GOOGL)": "GOOGL",
+        "Tesla Inc. (TSLA)": "TSLA",
+        "Meta Platforms (META)": "META",
+        "JPMorgan Chase & Co. (JPM)": "JPM"
+    }
+    
+    col_sel_empresa, col_plazo = st.columns([2, 1])
+    with col_sel_empresa:
+        empresa_seleccionada = st.selectbox("Selecciona la Empresa / Ticker de Acciones:", options=list(empresas_spp500.keys()))
+    with col_plazo:
+        periodo_accion = st.selectbox("Rango de Evolución:", options=["1 Mes", "6 Meses", "1 Año", "5 Años"], index=2)
+        
+    ticker_seleccionado = empresas_spp500[empresa_seleccionada]
+    periodo_map = {"1 Mes": "1mo", "6 Meses": "6mo", "1 Año": "1y", "5 Años": "5y"}
+    
+    try:
+        stock_obj = yf.Ticker(ticker_seleccionado)
+        hist_stock = stock_obj.history(period=periodo_map[periodo_accion])
+        
+        if not hist_stock.empty:
+            precio_hoy = hist_stock['Close'].iloc[-1]
+            precio_inicio = hist_stock['Close'].iloc[0]
+            rendimiento = ((precio_hoy - precio_inicio) / precio_inicio) * 100
+            
+            c_info1, c_info2, c_info3 = st.columns(3)
+            c_info1.metric("Cotización Actual", f"${precio_hoy:,.2f}")
+            c_info2.metric(f"Evolución ({periodo_accion})", f"{rendimiento:+.2f}%")
+            c_info3.metric("Volumen Promedio", f"{hist_stock['Volume'].mean():,.0f}")
+            
+            st.markdown(f"#### Gráfico de Cotización Histórica - {empresa_seleccionada}")
+            st.line_chart(hist_stock['Close'])
+        else:
+            st.warning("No hay datos históricos disponibles temporalmente para este ticker.")
+    except Exception as e:
+        st.error(f"Error al conectar con la cotización de la empresa: {e}")
+
+with tab_mercado2:
+    st.markdown("#### Portales Oficiales y Plazas Bursátiles")
+    st.markdown("Accede directamente a los portales de información de las bolsas de valores e instituciones aliadas:")
+    
+    bc1, bc2, bc3 = st.columns(3)
+    with bc1:
+        st.markdown("""
+        <div class="card-corporativa" style="text-align: center;">
+            <h4>🏛️ Bolsa de Valores de Quito (BVQ)</h4>
+            <p style="font-size: 0.9rem; color: #4A5568;">Consulta el boletín de cotizaciones, emisiones de renta fija y renta variable del mercado ecuatoriano.</p>
+        </div>
+        """, unsafe_allow_html=True)
+        st.link_button("Ir a Bolsa de Valores de Quito", "https://www.bolsadequito.com/", use_container_width=True)
+        
+    with bc2:
+        st.markdown("""
+        <div class="card-corporativa" style="text-align: center;">
+            <h4>📈 Bolsa de Valores de Guayaquil (BVG)</h4>
+            <p style="font-size: 0.9rem; color: #4A5568;">Revisa las principales empresas inscritas, volúmenes negociados y boletines bursátiles oficiales.</p>
+        </div>
+        """, unsafe_allow_html=True)
+        st.link_button("Ir a Bolsa de Valores de Guayaquil", "https://www.bolsadevaloresguayaquil.com/", use_container_width=True)
+        
+    with bc3:
+        st.markdown("""
+        <div class="card-corporativa" style="text-align: center;">
+            <h4>📊 S&P 500 & Wall Street Hub</h4>
+            <p style="font-size: 0.9rem; color: #4A5568;">Explora el portal global de Standard & Poor's para análisis profundo de índices y compañías.</p>
+        </div>
+        """, unsafe_allow_html=True)
+        st.link_button("Ir a S&P Global Markets", "https://www.spglobal.com/spdji/en/", use_container_width=True)
+
+st.write("---")
+
+# ==========================================
+# 8. MULTI-SLIDERS INTERACTIVOS
+# ==========================================
+col_noticias, col_linkedin, col_youtube = st.columns([1, 1, 1])
+
+with col_noticias:
+    st.markdown("### 📰 Actualidad Económica")
+    st.caption("Noticias clave del ecosistema financiero global y local:")
+    st.markdown("""
+    <div class="slider-container">
+        <div class="slider-track-fast">
+            <div class="slide">
+                <img src="https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?auto=format&fit=crop&w=400&h=230&q=60">
+                <div class="slide-text"><h3>Bloomberg</h3><p>Bancos centrales evalúan ajustes de tasas de interés comerciales para el tercer trimestre.</p></div>
+            </div>
+            <div class="slide">
+                <img src="https://images.unsplash.com/photo-1590283603385-17ffb3a7f29f?auto=format&fit=crop&w=400&h=230&q=60">
+                <div class="slide-text"><h3>CNN Business</h3><p>Mercados globales reaccionan al alza impulsados por el sector de tecnología e IA.</p></div>
+            </div>
+            <div class="slide">
+                <img src="https://images.unsplash.com/photo-1526304640581-d334cdbbf45e?auto=format&fit=crop&w=400&h=230&q=60">
+                <div class="slide-text"><h3>Revista Ekos</h3><p>Ecuador registra un incremento en solicitudes de microcréditos productivos corporativos.</p></div>
+            </div>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+with col_linkedin:
+    st.markdown("### 🔗 Artículos en LinkedIn")
+    st.caption("Haga clic en cualquiera de los slides para abrir el artículo original:")
+    st.markdown("""
+    <div class="slider-container">
+        <div class="slider-track-fast">
+            <a class="slide" href="https://www.linkedin.com/posts/jonathan-paul-vaca-cruz-70b378b8_estamos-delegando-nuestra-visi%C3%B3n-o-solo-share-7477466894040702976-aafK/" target="_blank">
+                <img src="https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?auto=format&fit=crop&w=400&h=230&q=60">
+                <div class="slide-text"><h3>Liderazgo y Gestión</h3><p>¿Estamos delegando nuestra visión o solo el trabajo administrativo?</p></div>
+            </a>
+            <a class="slide" href="https://www.linkedin.com/posts/jonathan-paul-vaca-cruz-70b378b8_ugcPost-7474858018564870144-UZ2h/" target="_blank">
+                <img src="https://images.unsplash.com/photo-1551836022-d5d88e9218df?auto=format&fit=crop&w=400&h=230&q=60">
+                <div class="slide-text"><h3>Estrategia Profesional</h3><p>Análisis técnico sobre la optimización del ecosistema corporativo.</p></div>
+            </a>
+            <a class="slide" href="https://www.linkedin.com/posts/activity-7383934863373971456-Xp9F" target="_blank">
+                <img src="https://images.unsplash.com/photo-1600880292203-757bb62b4baf?auto=format&fit=crop&w=400&h=230&q=60">
+                <div class="slide-text"><h3>Actividad y Actualidad</h3><p>Últimas novedades, reflexiones del mercado y pulso financiero institucional.</p></div>
+            </a>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+    st.link_button("🌐 Visitar Mi Perfil Completo en LinkedIn", "https://linkedin.com/in/jonathan-paul-vaca-cruz-70b378b8", use_container_width=True)
+
+with col_youtube:
+    st.markdown("### 🎥 Educación Financiera")
+    st.caption("Cápsulas de aprendizaje y videos clave de mi canal:")
+    st.markdown("""
+    <div class="slider-container">
+        <div class="slider-track-fast">
+            <div class="slide">
+                <img src="https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=400&h=230&q=60">
+                <div class="slide-text">Campañas Educativas<h3>Video: Crédito Inmobiliario</h3><p>Guía técnica paso a paso para pre-calificar con éxito a un financiamiento hipotecario.</p></div>
+            </div>
+            <div class="slide">
+                <img src="https://images.unsplash.com/photo-1542744094-3a31f103e35f?auto=format&fit=crop&w=400&h=230&q=60">
+                <div class="slide-text"><h3>Video: Financiamiento de Maestrías</h3><p>Cómo canalizar fondos para potenciar tu perfil profesional sin descapitalizarte.</p></div>
+            </div>
+            <div class="slide">
+                <img src="https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=400&h=230&q=60">
+                <div class="slide-text"><h3>Video: Análisis de Scoring</h3><p>Lo que las firmas aliadas analizan en tu buró crediticio al tramitar una línea de consumo.</p></div>
+            </div>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+    st.link_button("📺 Ir a mi Canal de YouTube", "http://www.youtube.com/@jonathanvaca3000", use_container_width=True)
+
+st.write("---")
+
+# ==========================================
+# 9. TESTIMONIOS CON AVATARES
+# ==========================================
+st.markdown("### 💬 Opiniones y Testimonios de Clientes")
+st.write("")
+
+t1, t2, t3 = st.columns(3)
+
+with t1:
+    ft1, txt1 = st.columns([1, 3])
+    with ft1:
+        st.image("https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&h=150&q=80", use_container_width=True)
+    with txt1:
+        st.markdown("""
+        <div style="background-color: #FFFFFF; padding: 12px; border-radius: 6px; border-left: 3px solid #D4AF37; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
+            "La consultoría técnica para el equipamiento de mi clínica odontológica fue impecable. Conseguí la tasa idónea."<br>
+            <small style='color:#718096;'><strong>- Dr. Alejandro R. (Odontólogo)</strong></small>
+        </div>
+        """, unsafe_allow_html=True)
+
+with t2:
+    ft2, txt2 = st.columns([1, 3])
+    with ft2:
+        st.image("https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=150&h=150&q=80", use_container_width=True)
+    with txt2:
+        st.markdown("""
+        <div style="background-color: #FFFFFF; padding: 12px; border-radius: 6px; border-left: 3px solid #D4AF37; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
+            "El acompañamiento en la estructuración de capital de trabajo salvó la operación trimestral de nuestra empresa."<br>
+            <small style='color:#718096;'><strong>- Ing. Marcelo P. (Gerente General)</strong></small>
+        </div>
+        """, unsafe_allow_html=True)
+
+with t3:
+    ft3, txt3 = st.columns([1, 3])
+    with ft3:
+        st.image("https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=150&h=150&q=80", use_container_width=True)
+    with txt3:
+        st.markdown("""
+        <div style="background-color: #FFFFFF; padding: 12px; border-radius: 6px; border-left: 3px solid #D4AF37; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
+            "Canalizar mi financiamiento educativo para la maestría en el exterior fue transparente y muy rápido gracias a Escala."<br>
+            <small style='color:#718096;'><strong>- Mtr. Valeria S. (Consultora)</strong></small>
+        </div>
+        """, unsafe_allow_html=True)
+
+st.write("---")
+
+# ==========================================
+# 10. PANEL DE ADMINISTRACIÓN Y REVISIÓN DE INFORMES
+# ==========================================
+with st.expander("🔒 Acceso a Panel de Administración y Informes"):
+    password_ingresada = st.text_input("Contraseña de Administrador:", type="password")
     
     if password_ingresada == PASSWORD_DASHBOARD:
-        str_app.success("✅ Acceso autorizado.")
+        st.success("✅ Acceso autorizado.")
         
-        tab_admin1, tab_admin2 = str_app.tabs(["📋 Leads en SQLite (Web)", "📊 Google Sheets & Informes PDF"])
+        tab_admin1, tab_admin2 = st.tabs(["📋 Leads en SQLite (Web)", "📊 Google Sheets & Informes PDF"])
         
         with tab_admin1:
-            str_app.markdown("### Leads registrados desde el formulario web")
+            st.markdown("### Leads registrados desde el formulario web")
             df_leads = leer_leads()
             if not df_leads.empty:
-                str_app.dataframe(df_leads, use_container_width=True)
+                st.dataframe(df_leads, use_container_width=True)
             else:
-                str_app.info("No hay registros guardados en SQLite todavía.")
+                st.info("No hay registros guardados en SQLite todavía.")
                 
         with tab_admin2:
-            str_app.markdown("### Base de datos externa y Generador de Informes")
+            st.markdown("### Base de datos externa y Generador de Informes")
             df_gsheet = cargar_datos_google_sheet(URL_GOOGLE_SHEET)
             
             if not df_gsheet.empty:
-                str_app.dataframe(df_gsheet, use_container_width=True)
+                st.dataframe(df_gsheet, use_container_width=True)
                 
-                str_app.markdown("#### Generar Informe Ejecutivo PDF (Metodología McKinsey)")
+                st.markdown("#### Generar Informe Ejecutivo PDF (Metodología McKinsey)")
                 
                 columna_nombre_preferida = None
                 for col in df_gsheet.columns:
@@ -723,25 +960,23 @@ with str_app.expander("🔒 Acceso a Panel de Administración y Informes"):
                         columna_nombre_preferida = col
                         break
                 
-                indice_fila = str_app.selectbox(
+                indice_fila = st.selectbox(
                     "Selecciona el cliente para el informe:", 
                     options=range(len(df_gsheet)),
-                    format_func=lambda x: f"Fila {x}: {df_gsheet.iloc[x][columna_nombre_preferida] if columna_nombre_preferida and pd.notna(df_gsheet.iloc[x][columna_nombre_preferida]) else df_gsheet.iloc[x].values[0]}",
-                    key="select_cliente_pdf"
+                    format_func=lambda x: f"Fila {x}: {df_gsheet.iloc[x][columna_nombre_preferida] if columna_nombre_preferida and pd.notna(df_gsheet.iloc[x][columna_nombre_preferida]) else df_gsheet.iloc[x].values[0]}"
                 )
                 
-                if str_app.button("📄 Generar y Descargar PDF Ejecutivo", key="btn_gen_pdf"):
+                if st.button("📄 Generar y Descargar PDF Ejecutivo"):
                     fila_seleccionada = df_gsheet.iloc[indice_fila]
                     pdf_buffer = generar_pdf_mckinsey(fila_seleccionada)
                     
-                    str_app.download_button(
+                    st.download_button(
                         label="📥 Descargar Informe en PDF",
                         data=pdf_buffer,
                         file_name=f"Informe_Ejecutivo_Escala_Fila_{indice_fila}.pdf",
-                        mime="application/pdf",
-                        key="btn_download_pdf"
+                        mime="application/pdf"
                     )
             else:
-                str_app.warning("No se pudo conectar o leer datos desde el Google Sheet configurado.")
+                st.warning("No se pudo conectar o leer datos desde el Google Sheet configurado.")
     elif password_ingresada:
-        str_app.error("❌ Contraseña incorrecta.")
+        st.error("❌ Contraseña incorrecta.")
