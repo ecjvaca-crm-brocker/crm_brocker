@@ -221,7 +221,7 @@ def generar_pdf_mckinsey(fila_client):
     pdf.cell(0, 5, "C. Pilar Operativo & Eficiencia de Procesos", 0, 1, "L")
     pdf.set_font("helvetica", "", 8.5)
     pdf.set_text_color(50, 50, 50)
-    pdf.multi_cell(0, 4, "El negocio exhibe el nivel maximo de dependencia operativa del fundador (5/5). La organizacion opera bajo un esquema de \"cultura de memoria\", donde ningun proceso clave cuenta con manuales o procedimientos documentados.")
+    pdf.multi_cell(0, 4, "El negocio exhibe el nivel maximo de dependencia operativa del fundador (5/5). La organizacion opera bajo un esquema de \"cultura de memoria\", donde ningun proceso core cuenta con manuales o procedimientos documentados.")
     pdf.ln(3)
     
     pdf.set_font("helvetica", "B", 9)
@@ -407,7 +407,6 @@ st.markdown("<h1 style='text-align: center; font-size: 2.8rem; margin-bottom: 0;
 st.markdown("<p style='text-align: center; color: #D4AF37; font-size: 1.4rem; font-weight: bold; margin-top: 0;'>Tu consultor financiero de confianza</p>", unsafe_allow_html=True)
 st.write("")
 
-# Sección superior organizada mediante solapas incluyendo la nueva herramienta de Capacidad de Pago y Scoring
 tab_principal_herramienta, tab_principal_calculadora = st.tabs(["🚀 Herramienta Financiera (Golden Ledger)", "🧮 Simulador, Capacidad de Pago y Scoring"])
 
 with tab_principal_herramienta:
@@ -426,15 +425,15 @@ with tab_principal_herramienta:
 with tab_principal_calculadora:
     st.markdown("""
     <div class="card-corporativa" style="border-top: 5px solid #10B981;">
-        <h3>🧮 Simulador Avanzado: Cuotas, Capacidad de Pago y Scoring</h3>
-        <p style='color: #4A5568;'>Calcula tu cuota mensual estimada, evalúa tu capacidad real de endeudamiento (CDP) y obtén una estimación de tu perfil de scoring crediticio.</p>
+        <h3>🧮 Simulador Avanzado: Dependientes, Independientes (RUC) y Scoring</h3>
+        <p style='color: #4A5568;'>Calcula cuotas, capacidad de pago (CDP) para perfiles dependientes e independientes aplicando los márgenes de rentabilidad de la actividad comercial.</p>
     </div>
     """, unsafe_allow_html=True)
     
-    subtab_sim1, subtab_sim2 = st.tabs(["💡 Simulador y Capacidad de Pago (CDP)", "📊 Análisis de Scoring & Calificación"])
+    subtab_sim1, subtab_sim2, subtab_sim3 = st.tabs(["💡 Simulador de Crédito", "🏢 Ingresos Independientes (RUC & Margen)", "📊 Análisis de Scoring & Calificación"])
     
     with subtab_sim1:
-        st.markdown("#### 1. Datos para la Simulación de Crédito")
+        st.markdown("#### Parámetros del Crédito")
         c_calc1, c_calc2, c_calc3 = st.columns(3)
         with c_calc1:
             monto_prestamo = st.number_input("Monto del Crédito Deseado ($):", min_value=100.0, value=10000.0, step=500.0, key="monto_credito_input")
@@ -456,45 +455,58 @@ with tab_principal_calculadora:
         res1.metric("💵 Cuota Mensual Estimada", f"${cuota_mensual:,.2f}")
         res2.metric("📈 Total Intereses", f"${interes_total:,.2f}")
         res3.metric("💰 Monto Total a Pagar", f"${total_pagar:,.2f}")
-        
-        st.markdown("---")
-        st.markdown("#### 2. Evaluación de Capacidad de Pago (CDP) y Monto Sugerido")
-        st.caption("Introduce tus ingresos y gastos fijos mensuales para determinar tu cuota disponible y el monto óptimo de endeudamiento:")
-        
-        cp_col1, cp_col2, cp_col3 = st.columns(3)
-        with cp_col1:
-            ingresos_netos = st.number_input("Ingresos Mensuales Netos ($):", min_value=0.0, value=1500.0, step=100.0, key="ingresos_netos_cp")
-        with cp_col2:
-            egresos_fijos = st.number_input("Egresos / Gastos Fijos Mensuales ($):", min_value=0.0, value=500.0, step=50.0, key="egresos_fijos_cp")
-        with cp_col3:
-            otras_cuotas = st.number_input("Pago de Otras Deudas / Créditos Vigentes ($):", min_value=0.0, value=200.0, step=50.0, key="otras_cuotas_cp")
-            
-        # Cuota Disponible para Pago (CDP) - por lo general se permite comprometer hasta el 40-50% del ingreso remanente
-        excedente_mensual = ingresos_netos - egresos_fijos - otras_cuotas
-        # Capacidad máxima recomendada (40% del ingreso neto o el excedente disponible)
-        cdp_sugerida = min(excedente_mensual * 0.8, ingresos_netos * 0.45)
-        if cdp_sugerida < 0:
-            cdp_sugerida = 0.0
-            
-        # Cálculo del monto sugerido mediante la fórmula de valor presente (PV) basada en la CDP
-        if i_mensual > 0 and cdp_sugerida > 0:
-            monto_sugerido = cdp_sugerida * (1 - (1 + i_mensual)**(-plazo_meses)) / i_mensual
-        else:
-            monto_sugerido = cdp_sugerida * plazo_meses
-
-        cdp_res1, cdp_res2, cdp_res3 = st.columns(3)
-        cdp_res1.metric("💼 Excedente Mensual Neto", f"${excedente_mensual:,.2f}")
-        cdp_res2.metric("🛡️ Cuota Disponible (CDP)", f"${cdp_sugerida:,.2f}")
-        cdp_res3.metric("🎯 Monto Sugerido de Crédito", f"${monto_sugerido:,.2f}")
-        
-        if cuota_mensual <= cdp_sugerida:
-            st.success("✅ **Resultado de Viabilidad:** Tu capacidad de pago cubre holgadamente la cuota estimada para el monto de crédito seleccionado.")
-        else:
-            st.warning("⚠️ **Alerta de Viabilidad:** La cuota estimada supera tu Cuota Disponible para Pago (CDP) recomendada. Te sugerimos ampliar el plazo o ajustar el monto del crédito.")
 
     with subtab_sim2:
+        st.markdown("#### 🏢 Cálculo de Ingresos Netos para Clientes Independientes (Actividad Comercial / RUC)")
+        st.caption("De acuerdo al formulario, se ingresa la venta/ingreso bruto (D23), y mediante el código de actividad del RUC se extrae el margen de rentabilidad de la pestaña de rentabilidades para calcular el ingreso neto y los gastos de operación reales: -D23 * (1 - H30).")
+        
+        # Tabla de rentabilidades simulada según pestaña de rentabilidades (Código Columna A, Margen Columna C)
+        @st.cache_data
+        def cargar_tabla_rentabilidades():
+            return pd.DataFrame({
+                "Codigo_RUC": ["G47", "I56", "C10", "S96", "M70", "F41", "H55"],
+                "Actividad_Comercial": [
+                    "Comercio al por mayor y menor (Venta de mercadería)",
+                    "Restaurantes, 3B y servicios de alimentación",
+                    "Manufactura e Industria de Transformación",
+                    "Servicios Profesionales / Personales Diversos",
+                    "Actividades de gestión, consultoría y técnicas",
+                    "Construcción y obras civiles",
+                    "Hoteles y Alojamiento Turístico"
+                ],
+                "Margen_Rentabilidad": [0.25, 0.35, 0.30, 0.60, 0.50, 0.20, 0.40] # Ejemplos de márgenes H30
+            })
+        
+        df_rent = cargar_tabla_rentabilidades()
+        
+        ind_col1, ind_col2 = st.columns(2)
+        with ind_col1:
+            actividad_elegida = st.selectbox("Selecciona la Actividad Comercial según RUC:", options=df_rent["Actividad_Comercial"].tolist(), key="select_act_ruc")
+            fila_act = df_rent[df_rent["Actividad_Comercial"] == actividad_elegida].iloc[0]
+            codigo_ruc_val = fila_act["Codigo_RUC"]
+            margen_h30 = float(fila_act["Margen_Rentabilidad"])
+            
+            st.info(f"📌 **Código RUC (Columna A):** `{codigo_ruc_val}` | **Margen (H30):** `{margen_h30*100:.1f}%`")
+            
+        with ind_col2:
+            ingreso_bruto_d23 = st.number_input("Ingresos Brutos / Ventas Mensuales (D23) [$]:", min_value=0.0, value=3000.0, step=200.0, key="ingreso_d23_input")
+            
+        # Fórmula solicitada: Ingreso neto o factor operativo aproximado = -D23 * (1 - H30) o ingreso neto ajustado
+        ingreso_neto_ajustado = ingreso_bruto_d23 * (1 - margen_h30)
+        
+        st.markdown("---")
+        st.markdown("#### Resultado del Análisis de Capacidad (Independiente)")
+        
+        cp_ind1, cp_ind2, cp_ind3 = st.columns(3)
+        cp_ind1.metric("💵 Ingresos Brutos (D23)", f"${ingreso_bruto_d23:,.2f}")
+        cp_ind2.metric("📉 Gastos Operativos Estimados", f"${ingreso_bruto_d23 * margen_h30:,.2f}")
+        cp_ind3.metric("💼 Ingreso Neto Ajustado Real", f"${ingreso_neto_ajustado:,.2f}")
+        
+        st.caption("Este ingreso neto ajustado permite reflejar la realidad del negocio, ya que los independientes suelen declarar parcialmente sus gastos reales.")
+
+    with subtab_sim3:
         st.markdown("#### 📊 Simulador y Diagnóstico de Scoring Crediticio")
-        st.caption("Responde las siguientes variables clave para estimar tu puntaje interno y probabilidad de aprobación ante instituciones financieras aliadas:")
+        st.caption("Responde las siguientes variables clave para estimar tu puntaje interno y probabilidad de aprobación:")
         
         sc_col1, sc_col2 = st.columns(2)
         with sc_col1:
@@ -504,7 +516,6 @@ with tab_principal_calculadora:
             nivel_endeudamiento_actual = st.selectbox("Ratio de Endeudamiento Actual (Debt-to-Income):", options=["Menor al 20%", "Entre 20% y 40%", "Entre 40% y 60%", "Mayor al 60%"], index=1)
             garantias_respaldo = st.selectbox("Garantías o Respaldo Patrimonial:", options=["Bienes raíces / Inversiones líquidas", "Vehículo propio / Garante solvente", "Sin garantías o avales sólidos"], index=0)
             
-        # Puntuación algorítmica ponderada (Score de 0 a 1000)
         score_base = 350
         if "Excelente" in historial_buro: score_base += 300
         elif "Bueno" in historial_buro: score_base += 200
@@ -762,7 +773,7 @@ with tab_mercado1:
             c_info1, c_info2, c_info3 = st.columns(3)
             c_info1.metric("Cotización Actual", f"${precio_hoy:,.2f}")
             c_info2.metric(f"Evolución ({periodo_accion})", f"{rendimiento:+.2f}%")
-            c_info3.metric("Volumen Promedio", f"{hist_stock['Volume'].mean():,.0f}")
+            c_info3.metric("Volumen Promedio", f"${hist_stock['Volume'].mean():,.0f}")
             
             st.markdown(f"#### Gráfico de Cotización Histórica - {empresa_seleccionada}")
             st.line_chart(hist_stock['Close'])
