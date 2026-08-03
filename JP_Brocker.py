@@ -9,6 +9,7 @@ from datetime import datetime
 from io import BytesIO
 from fpdf import FPDF
 import matplotlib.pyplot as plt
+import yfinance as yf
 
 # ==========================================
 # 1. CONFIGURACIONES INICIALES GENERALES
@@ -139,11 +140,7 @@ def generar_pdf_mckinsey(fila_client):
     pdf.alias_nb_pages()
     pdf.set_auto_page_break(auto=True, margin=15)
     
-    # ---------------------------------------------------------
-    # PÁGINA 1: Portada, Resumen, Radar y Tabla de Madurez
-    # ---------------------------------------------------------
     pdf.add_page()
-    
     pdf.set_font("helvetica", "B", 14)
     pdf.set_text_color(10, 37, 64)
     pdf.cell(0, 8, "Informe Ejecutivo de Evaluacion de Cuenta", 0, 1, "L")
@@ -198,11 +195,7 @@ def generar_pdf_mckinsey(fila_client):
         pdf.cell(25, 5.5, punt, 1, 0, "C")
         pdf.cell(45, 5.5, estado, 1, 1, "C")
 
-    # ---------------------------------------------------------
-    # PÁGINA 2: Análisis Técnico por Pilares
-    # ---------------------------------------------------------
     pdf.add_page()
-    
     pdf.set_font("helvetica", "B", 11)
     pdf.set_text_color(10, 37, 64)
     pdf.cell(0, 6, "2. Analisis Tecnico por Pilares (Diagnostico Profundo)", 0, 1, "L")
@@ -238,11 +231,7 @@ def generar_pdf_mckinsey(fila_client):
     pdf.set_text_color(50, 50, 50)
     pdf.multi_cell(0, 4, "Se identifican pendientes en obligaciones tributarias y una practica generalizada de operar mediante acuerdos de palabra con proveedores y clientes en lugar de contratos escritos y blindados.")
 
-    # ---------------------------------------------------------
-    # PÁGINA 3: Hoja de Ruta Estratégica (Plan de Trabajo 90 Días)
-    # ---------------------------------------------------------
     pdf.add_page()
-    
     pdf.set_font("helvetica", "B", 11)
     pdf.set_text_color(10, 37, 64)
     pdf.cell(0, 6, "3. Hoja de Ruta Estratégica (Plan de Trabajo 90 Dias)", 0, 1, "L")
@@ -418,7 +407,6 @@ st.markdown("<h1 style='text-align: center; font-size: 2.8rem; margin-bottom: 0;
 st.markdown("<p style='text-align: center; color: #D4AF37; font-size: 1.4rem; font-weight: bold; margin-top: 0;'>Tu consultor financiero de confianza</p>", unsafe_allow_html=True)
 st.write("")
 
-# Botón destacado de Finanzas Personales
 st.link_button(
     "📊 Acceder a la Herramienta de Finanzas Personales (Golden Ledger)", 
     "https://golden-ledger-ai-93.lovable.app/", 
@@ -558,15 +546,139 @@ with col_der:
 st.write("---")
 
 # ==========================================
-# 7. INDICADORES ECONÓMICOS
+# 7. INDICADORES ECONÓMICOS EN TIEMPO REAL (YFINANCE)
 # ==========================================
-st.markdown("### 📊 Indicadores Económicos Mundiales y Locales")
+st.markdown("### 📊 Indicadores Económicos Dinámicos en Tiempo Real")
+st.caption("Datos conectados directamente a los movimientos de mercado bursátil global y commodities:")
+
+@st.cache_data(ttl=300)
+def obtener_indicadores_tiempo_real():
+    tickers_dict = {
+        "S&P 500": "^GSPC",
+        "NASDAQ 100": "^NDX",
+        "Petróleo WTI": "CL=F",
+        "Oro": "GC=F",
+        "Bitcoin": "BTC-USD"
+    }
+    resultados = {}
+    for nombre, ticker in tickers_dict.items():
+        try:
+            t = yf.Ticker(ticker)
+            hist = t.history(period="2d")
+            if not hist.empty and len(hist) >= 2:
+                precio_actual = hist['Close'].iloc[-1]
+                precio_anterior = hist['Close'].iloc[-2]
+                cambio_pct = ((precio_actual - precio_anterior) / precio_anterior) * 100
+                resultados[nombre] = (f"${precio_actual:,.2f}" if precio_actual > 10 else f"{precio_actual:,.2f}", f"{cambio_pct:+.2f}%")
+            else:
+                resultados[nombre] = ("N/A", "0.00%")
+        except:
+            resultados[nombre] = ("N/A", "0.00%")
+    return resultados
+
+datos_mercado = obtener_indicadores_tiempo_real()
+
 m1, m2, m3, m4, m5 = st.columns(5)
-m1.metric(label="🇺🇸 S&P 500", value="5,137.08", delta="+0.80%")
-m2.metric(label="💻 NASDAQ 100", value="18,302.91", delta="+1.14%")
-m3.metric(label="🛢️ Crudo Oriente (Ecuador)", value="$78.26", delta="-0.45%")
-m4.metric(label="🏛️ BV Quito", value="1,045.20", delta="+0.12%")
-m5.metric(label="🏦 BV Guayaquil", value="985.40", delta="-0.08%")
+for i, (k, v) in enumerate(datos_mercado.items()):
+    val, delta = v
+    if i == 0:
+        m1.metric(label=f"📈 {k}", value=val, delta=delta)
+    elif i == 1:
+        m2.metric(label=f"💻 {k}", value=val, delta=delta)
+    elif i == 2:
+        m3.metric(label=f"🛢️ {k}", value=val, delta=delta)
+    elif i == 3:
+        m4.metric(label=f"🥇 {k}", value=val, delta=delta)
+    elif i == 4:
+        m5.metric(label=f"🪙 {k}", value=val, delta=delta)
+
+st.write("---")
+
+# ==========================================
+# 7.1. NUEVO MÓDULO: ACCESO A MERCADOS Y ACCIONES POR EMPRESAS
+# ==========================================
+st.markdown("### 🌐 Terminal de Mercados y Acciones por Empresas")
+st.caption("Consulta la evolución técnica, cotizaciones en vivo y enlaces oficiales a las bolsas de valores:")
+
+tab_mercado1, tab_mercado2 = st.tabs(["🇺🇸 Acciones Principales (S&P 500 / Global)", "🏛️ Bolsas de Valores e Institucionales"])
+
+with tab_mercado1:
+    st.markdown("#### Selector de Acciones Globales")
+    
+    # Diccionario de empresas clave del S&P 500 y tecnología
+    empresas_spp500 = {
+        "Apple Inc. (AAPL)": "AAPL",
+        "Microsoft Corporation (MSFT)": "MSFT",
+        "NVIDIA Corporation (NVDA)": "NVDA",
+        "Amazon.com Inc. (AMZN)": "AMZN",
+        "Alphabet Inc. Google (GOOGL)": "GOOGL",
+        "Tesla Inc. (TSLA)": "TSLA",
+        "Meta Platforms (META)": "META",
+        "JPMorgan Chase & Co. (JPM)": "JPM"
+    }
+    
+    col_sel_empresa, col_plazo = st.columns([2, 1])
+    with col_sel_empresa:
+        empresa_seleccionada = st.selectbox("Selecciona la Empresa / Ticker de Acciones:", options=list(empresas_spp500.keys()))
+    with col_plazo:
+        periodo_accion = st.selectbox("Rango de Evolución:", options=["1 Mes", "6 Meses", "1 Año", "5 Años"], index=2)
+        
+    ticker_seleccionado = empresas_spp500[empresa_seleccionada]
+    
+    periodo_map = {"1 Mes": "1mo", "6 Meses": "6mo", "1 Año": "1y", "5 Años": "5y"}
+    
+    try:
+        stock_obj = yf.Ticker(ticker_seleccionado)
+        hist_stock = stock_obj.history(period=periodo_map[periodo_accion])
+        
+        if not hist_stock.empty:
+            precio_hoy = hist_stock['Close'].iloc[-1]
+            precio_inicio = hist_stock['Close'].iloc[0]
+            rendimiento = ((precio_hoy - precio_inicio) / precio_inicio) * 100
+            
+            c_info1, c_info2, c_info3 = st.columns(3)
+            c_info1.metric("Cotización Actual", f"${precio_hoy:,.2f}")
+            c_info2.metric(f"Evolución ({periodo_accion})", f"{rendimiento:+.2f}%")
+            c_info3.metric("Volumen Promedio", f"{hist_stock['Volume'].mean():,.0f}")
+            
+            st.markdown(f"#### Gráfico de Cotización Histórica - {empresa_seleccionada}")
+            st.line_chart(hist_stock['Close'])
+        else:
+            st.warning("No hay datos históricos disponibles temporalmente para este ticker.")
+    except Exception as e:
+        st.error(f"Error al conectar con la cotización de la empresa: {e}")
+
+with tab_mercado2:
+    st.markdown("#### Portales Oficiales y Plazas Bursátiles")
+    st.markdown("Accede directamente a los portales de información de las bolsas de valores e instituciones aliadas:")
+    
+    bc1, bc2, bc3 = st.columns(3)
+    with bc1:
+        st.markdown("""
+        <div class="card-corporativa" style="text-align: center;">
+            <h4>🏛️ Bolsa de Valores de Quito (BVQ)</h4>
+            <p style="font-size: 0.9rem; color: #4A5568;">Consulta el boletín de cotizaciones, emisiones de renta fija y renta variable del mercado ecuatoriano.</p>
+        </div>
+        """, unsafe_allow_html=True)
+        st.link_button("Ir a Bolsa de Valores de Quito", "https://www.bolsadequito.com/", use_container_width=True)
+        
+    with bc2:
+        st.markdown("""
+        <div class="card-corporativa" style="text-align: center;">
+            <h4>📈 Bolsa de Valores de Guayaquil (BVG)</h4>
+            <p style="font-size: 0.9rem; color: #4A5568;">Revisa las principales empresas inscritas, volúmenes negociados y boletines bursátiles oficiales.</p>
+        </div>
+        """, unsafe_allow_html=True)
+        st.link_button("Ir a Bolsa de Valores de Guayaquil", "https://www.bolsadevaloresguayaquil.com/", use_container_width=True)
+        
+    with bc3:
+        st.markdown("""
+        <div class="card-corporativa" style="text-align: center;">
+            <h4>📊 S&P 500 & Wall Street Hub</h4>
+            <p style="font-size: 0.9rem; color: #4A5568;">Explora el portal global de Standard & Poor's para análisis profundo de índices y compañías.</p>
+        </div>
+        """, unsafe_allow_html=True)
+        st.link_button("Ir a S&P Global Markets", "https://www.spglobal.com/spdji/en/", use_container_width=True)
 
 st.write("---")
 
@@ -719,7 +831,6 @@ with st.expander("🔒 Acceso a Panel de Administración y Informes"):
                 
                 st.markdown("#### Generar Informe Ejecutivo PDF (Metodología McKinsey)")
                 
-                # Buscar dinámicamente la columna que contenga el nombre de la empresa o cliente
                 columna_nombre_preferida = None
                 for col in df_gsheet.columns:
                     if any(k in col.lower() for k in ["empresa", "nombre", "cliente", "razon", "negocio"]):
