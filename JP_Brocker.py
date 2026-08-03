@@ -18,7 +18,7 @@ NUMERO_WHATSAPP = "593998076979"
 PASSWORD_DASHBOARD = "Escala2026" 
 
 st.set_page_config(
-    page_title="Escala Finance & Insurance | Consultoría Financiera y Corretaje", 
+    page_title="Escala | Consultoría Empresarial y Financiera ", 
     page_icon="🏛️", 
     layout="wide"
 )
@@ -98,7 +98,7 @@ class PDFConsultoria(FPDF):
         self.set_y(-15)
         self.set_font("helvetica", "I", 8)
         self.set_text_color(150, 150, 150)
-        self.cell(0, 10, f"Pagina {self.page_no()}/{{nb}} | Uso Exclusivo - Escala Finance & Insurance", 0, 0, "C")
+        self.cell(0, 10, f"Pagina {self.page_no()}/{{nb}} | Uso Exclusivo - Escala | Consultoría Empresarial y Financiera ", 0, 0, "C")
 
 def generar_grafico_radar():
     labels = ['Comercial', 'Financiero', 'Operativo', 'Legal & Gov']
@@ -133,7 +133,7 @@ def generar_pdf_mckinsey(fila_client):
                 return str(val) if pd.notna(val) else defecto
         return defecto
 
-    empresa = buscar_col(["empresa", "negocio", "organización"], "Escala Consulting (Kinetic Motor Studio)")
+    empresa = buscar_col(["empresa", "negocio", "organización"], "Escala | Consultoría Empresarial y Financiera (Kinetic Motor Studio)")
     representante = buscar_col(["nombre", "representante", "propietario"], "Jonathan Vaca")
     
     pdf = PDFConsultoria()
@@ -403,7 +403,7 @@ st.markdown("""
 # ==========================================
 # 5. CABECERA PRINCIPAL Y HERRAMIENTA EXTERNA + CALCULADORA
 # ==========================================
-st.markdown("<h1 style='text-align: center; font-size: 2.8rem; margin-bottom: 0;'>🏛️ ESCALA FINANCE & INSURANCE</h1>", unsafe_allow_html=True)
+st.markdown("<h1 style='text-align: center; font-size: 2.8rem; margin-bottom: 0;'>🏛️ Escala | Consultoría Empresarial y Financiera </h1>", unsafe_allow_html=True)
 st.markdown("<p style='text-align: center; color: #D4AF37; font-size: 1.4rem; font-weight: bold; margin-top: 0;'>Tu consultor financiero de confianza</p>", unsafe_allow_html=True)
 st.write("")
 
