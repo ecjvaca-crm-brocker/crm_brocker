@@ -391,7 +391,7 @@ with tab_principal_calculadora:
             str_app.info(f"📌 **Aporte Personal IESS (9.45%):** `- ${descuentos_iess:,.2f}`")
             otros_egresos_mes = str_app.number_input("Otras Obligaciones / Descuentos Mensuales en Rol [$]:", min_value=0.0, value=100.0, step=50.0, key="dep_egresos_input")
             
-        ingreso_neto_dependiente = sueldo_basico_mensual + otros_otros_ingresos_fijos_eval(otros_ingresos_fijos) - descuentos_iess - otros_egresos_mes if 'otros_otros_ingresos_fijos_eval' else (sueldo_basico_mensual + otros_ingresos_fijos - descuentos_iess - otros_egresos_mes)
+        ingreso_neto_dependiente = sueldo_basico_mensual + otros_ingresos_fijos - descuentos_iess - otros_egresos_mes
         
         str_app.markdown("---")
         str_app.markdown("#### Resultado del Análisis de Capacidad (Dependiente)")
