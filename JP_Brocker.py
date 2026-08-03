@@ -18,7 +18,7 @@ NUMERO_WHATSAPP = "593998076979"
 PASSWORD_DASHBOARD = "Escala2026" 
 
 st.set_page_config(
-    page_title="Escala | Consultoría Empresarial y Financiera", 
+    page_title="Escala  Consultoría Empresarial y Financiera ", 
     page_icon="🏛️", 
     layout="wide"
 )
@@ -98,7 +98,7 @@ class PDFConsultoria(FPDF):
         self.set_y(-15)
         self.set_font("helvetica", "I", 8)
         self.set_text_color(150, 150, 150)
-        self.cell(0, 10, f"Pagina {self.page_no()}/{{nb}} | Uso Exclusivo -Escala | Consultoría Empresarial y Financiera", 0, 0, "C")
+        self.cell(0, 10, f"Pagina {self.page_no()}/{{nb}} | Uso Exclusivo -Escala  Consultoría Empresarial y Financiera ", 0, 0, "C")
 
 def generar_grafico_radar():
     labels = ['Comercial', 'Financiero', 'Operativo', 'Legal & Gov']
@@ -133,7 +133,7 @@ def generar_pdf_mckinsey(fila_client):
                 return str(val) if pd.notna(val) else defecto
         return defecto
 
-    empresa = buscar_col(["empresa", "negocio", "organización"], "Escala Consulting (Kinetic Motor Studio)")
+    empresa = buscar_col(["empresa", "negocio", "organización"], "Escala  Consultoría Empresarial y Financiera (Kinetic Motor Studio)")
     representante = buscar_col(["nombre", "representante", "propietario"], "Jonathan Vaca")
     
     pdf = PDFConsultoria()
@@ -401,18 +401,14 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # ==========================================
-# 5. CABECERA PRINCIPAL Y HERRAMIENTA EXTERNA + CALCULADORAS BANCARIAS
+# 5. CABECERA PRINCIPAL Y HERRAMIENTA EXTERNA + CALCULADORA & SCORING
 # ==========================================
-st.markdown("<h1 style='text-align: center; font-size: 2.8rem; margin-bottom: 0;'>🏛️ Escala | Consultoría Empresarial y Financiera</h1>", unsafe_allow_html=True)
+st.markdown("<h1 style='text-align: center; font-size: 2.8rem; margin-bottom: 0;'>🏛️ Escala  Consultoría Empresarial y Financiera </h1>", unsafe_allow_html=True)
 st.markdown("<p style='text-align: center; color: #D4AF37; font-size: 1.4rem; font-weight: bold; margin-top: 0;'>Tu consultor financiero de confianza</p>", unsafe_allow_html=True)
 st.write("")
 
-# Pestañas superiores: Herramienta Golden Ledger, Simulador de Cuotas y el nuevo Simulador de Capacidad de Pago Bancario
-tab_principal_herramienta, tab_principal_calculadora, tab_principal_capacidad = st.tabs([
-    "🚀 Herramienta Financiera (Golden Ledger)", 
-    "🧮 Simulador Rápido de Cuotas", 
-    "🏦 Simulador de Capacidad de Pago (Bancario)"
-])
+# Sección superior organizada mediante solapas incluyendo la nueva herramienta de Capacidad de Pago y Scoring
+tab_principal_herramienta, tab_principal_calculadora = st.tabs(["🚀 Herramienta Financiera (Golden Ledger)", "🧮 Simulador, Capacidad de Pago y Scoring"])
 
 with tab_principal_herramienta:
     st.markdown("""
@@ -430,95 +426,116 @@ with tab_principal_herramienta:
 with tab_principal_calculadora:
     st.markdown("""
     <div class="card-corporativa" style="border-top: 5px solid #10B981;">
-        <h3>🧮 Simulador Rápido de Cuotas y Préstamos</h3>
-        <p style='color: #4A5568;'>Calcula de manera inmediata la cuota mensual estimada para tus necesidades de financiamiento.</p>
+        <h3>🧮 Simulador Avanzado: Cuotas, Capacidad de Pago y Scoring</h3>
+        <p style='color: #4A5568;'>Calcula tu cuota mensual estimada, evalúa tu capacidad real de endeudamiento (CDP) y obtén una estimación de tu perfil de scoring crediticio.</p>
     </div>
     """, unsafe_allow_html=True)
     
-    c_calc1, c_calc2, c_calc3 = st.columns(3)
-    with c_calc1:
-        monto_prestamo = st.number_input("Monto del Crédito ($):", min_value=100.0, value=10000.0, step=500.0, key="monto_credito_input")
-    with c_calc2:
-        tasa_interes_anual = st.number_input("Tasa de Interés Anual (%):", min_value=1.0, value=15.0, step=0.5, key="tasa_credito_input")
-    with c_calc3:
-        plazo_meses = st.selectbox("Plazo (Meses):", options=[12, 24, 36, 48, 60, 72], index=2, key="plazo_credito_input")
+    subtab_sim1, subtab_sim2 = st.tabs(["💡 Simulador y Capacidad de Pago (CDP)", "📊 Análisis de Scoring & Calificación"])
+    
+    with subtab_sim1:
+        st.markdown("#### 1. Datos para la Simulación de Crédito")
+        c_calc1, c_calc2, c_calc3 = st.columns(3)
+        with c_calc1:
+            monto_prestamo = st.number_input("Monto del Crédito Deseado ($):", min_value=100.0, value=10000.0, step=500.0, key="monto_credito_input")
+        with c_calc2:
+            tasa_interes_anual = st.number_input("Tasa de Interés Anual (%):", min_value=1.0, value=15.0, step=0.5, key="tasa_credito_input")
+        with c_calc3:
+            plazo_meses = st.selectbox("Plazo (Meses):", options=[12, 24, 36, 48, 60, 72], index=2, key="plazo_credito_input")
+            
+        i_mensual = (tasa_interes_anual / 100) / 12
+        if i_mensual > 0:
+            cuota_mensual = monto_prestamo * (i_mensual * (1 + i_mensual)**plazo_meses) / ((1 + i_mensual)**plazo_meses - 1)
+        else:
+            cuota_mensual = monto_prestamo / plazo_meses
+            
+        total_pagar = cuota_mensual * plazo_meses
+        interes_total = total_pagar - monto_prestamo
         
-    i_mensual = (tasa_interes_anual / 100) / 12
-    if i_mensual > 0:
-        cuota_mensual = monto_prestamo * (i_mensual * (1 + i_mensual)**plazo_meses) / ((1 + i_mensual)**plazo_meses - 1)
-    else:
-        cuota_mensual = monto_prestamo / plazo_meses
+        res1, res2, res3 = st.columns(3)
+        res1.metric("💵 Cuota Mensual Estimada", f"${cuota_mensual:,.2f}")
+        res2.metric("📈 Total Intereses", f"${interes_total:,.2f}")
+        res3.metric("💰 Monto Total a Pagar", f"${total_pagar:,.2f}")
         
-    total_pagar = cuota_mensual * plazo_meses
-    interes_total = total_pagar - monto_prestamo
-    
-    res1, res2, res3 = st.columns(3)
-    res1.metric("💵 Cuota Mensual Estimada", f"${cuota_mensual:,.2f}")
-    res2.metric("📈 Total Intereses", f"${interes_total:,.2f}")
-    res3.metric("💰 Monto Total a Pagar", f"${total_pagar:,.2f}")
-    st.write("")
-
-with tab_principal_capacidad:
-    st.markdown("""
-    <div class="card-corporativa" style="border-top: 5px solid #0A2540;">
-        <h3>🏦 Simulador de Capacidad de Pago & Scoring Bancario</h3>
-        <p style='color: #4A5568;'>Modelo técnico basado en tu plantilla de análisis de riesgo: evalúa ingresos, egresos, cobertura del dividendo y capacidad máxima de endeudamiento.</p>
-    </div>
-    """, unsafe_allow_html=True)
-    
-    col_cap1, col_cap2 = st.columns(2)
-    
-    with col_cap1:
-        st.markdown("#### 📥 Ingresos y Parámetros del Crédito")
-        ingreso_mensual = st.number_input("Ingreso Mensual Total ($):", min_value=0.0, value=1300.0, step=50.0, key="cap_ingreso")
-        monto_propuesto = st.number_input("Monto Solicitado del Crédito ($):", min_value=100.0, value=10000.0, step=500.0, key="cap_monto")
-        plazo_propuesto = st.selectbox("Plazo Propuesto (Meses):", options=[12, 24, 36, 48, 60], index=0, key="cap_plazo")
-        tasa_propuesta = st.number_input("Tasa Anual del Crédito (%):", min_value=1.0, value=22.6, step=0.1, key="cap_tasa")
+        st.markdown("---")
+        st.markdown("#### 2. Evaluación de Capacidad de Pago (CDP) y Monto Sugerido")
+        st.caption("Introduce tus ingresos y gastos fijos mensuales para determinar tu cuota disponible y el monto óptimo de endeudamiento:")
         
-    with col_cap2:
-        st.markdown("#### 📤 Egresos y Obligaciones Mensuales")
-        gastos_familiares = st.number_input("Gastos Familiares / Alimentación ($):", min_value=0.0, value=400.0, step=50.0, key="cap_gastos")
-        alquiler = st.number_input("Alquiler / Vivienda ($):", min_value=0.0, value=0.0, step=50.0, key="cap_alquiler")
-        otros_egresos = st.number_input("Otros Egresos / Cuotas de Deudas Actuales ($):", min_value=0.0, value=0.0, step=50.0, key="cap_otros_egresos")
+        cp_col1, cp_col2, cp_col3 = st.columns(3)
+        with cp_col1:
+            ingresos_netos = st.number_input("Ingresos Mensuales Netos ($):", min_value=0.0, value=1500.0, step=100.0, key="ingresos_netos_cp")
+        with cp_col2:
+            egresos_fijos = st.number_input("Egresos / Gastos Fijos Mensuales ($):", min_value=0.0, value=500.0, step=50.0, key="egresos_fijos_cp")
+        with cp_col3:
+            otras_cuotas = st.number_input("Pago de Otras Deudas / Créditos Vigentes ($):", min_value=0.0, value=200.0, step=50.0, key="otras_cuotas_cp")
+            
+        # Cuota Disponible para Pago (CDP) - por lo general se permite comprometer hasta el 40-50% del ingreso remanente
+        excedente_mensual = ingresos_netos - egresos_fijos - otras_cuotas
+        # Capacidad máxima recomendada (40% del ingreso neto o el excedente disponible)
+        cdp_sugerida = min(excedente_mensual * 0.8, ingresos_netos * 0.45)
+        if cdp_sugerida < 0:
+            cdp_sugerida = 0.0
+            
+        # Cálculo del monto sugerido mediante la fórmula de valor presente (PV) basada en la CDP
+        if i_mensual > 0 and cdp_sugerida > 0:
+            monto_sugerido = cdp_sugerida * (1 - (1 + i_mensual)**(-plazo_meses)) / i_mensual
+        else:
+            monto_sugerido = cdp_sugerida * plazo_meses
 
-    # Cálculos bajo la metodología del modelo de banco
-    total_egresos = gastos_familiares + alquiler + otros_egresos
-    ingreso_neto = ingreso_mensual - total_egresos
-    disponible_pago = ingreso_neto / 2.0  # 50% del ingreso neto para pago mínimo
-    
-    # Cuota mensual referencial del nuevo crédito (PMT)
-    i_m = (tasa_propuesta / 100) / 12
-    if i_m > 0:
-        cuota_referencial = monto_propuesto * (i_m * (1 + i_m)**plazo_propuesto) / ((1 + i_m)**plazo_propuesto - 1)
-    else:
-        cuota_referencial = monto_propuesto / plazo_propuesto
+        cdp_res1, cdp_res2, cdp_res3 = st.columns(3)
+        cdp_res1.metric("💼 Excedente Mensual Neto", f"${excedente_mensual:,.2f}")
+        cdp_res2.metric("🛡️ Cuota Disponible (CDP)", f"${cdp_sugerida:,.2f}")
+        cdp_res3.metric("🎯 Monto Sugerido de Crédito", f"${monto_sugerido:,.2f}")
+        
+        if cuota_mensual <= cdp_sugerida:
+            st.success("✅ **Resultado de Viabilidad:** Tu capacidad de pago cubre holgadamente la cuota estimada para el monto de crédito seleccionado.")
+        else:
+            st.warning("⚠️ **Alerta de Viabilidad:** La cuota estimada supera tu Cuota Disponible para Pago (CDP) recomendada. Te sugerimos ampliar el plazo o ajustar el monto del crédito.")
 
-    # Cobertura
-    cobertura = disponible_pago / cuota_referencial if cuota_referencial > 0 else 0
-    aplica_credito = "SI" if cobertura >= 1.0 and ingreso_neto > 0 else "NO"
-    
-    # Capacidad máxima de endeudamiento usando PV con tasa referencial de tarjeta/consumo (ej. 16.06% anual)
-    tasa_ref_tc = 0.1606 / 12
-    cuota_comprometible = disponible_pago - cuota_referencial
-    if cuota_comprometible > 0 and tasa_ref_tc > 0:
-        capacidad_max_credito = cuota_comprometible * ((1 - (1 + tasa_ref_tc)**(-plazo_propuesto)) / tasa_ref_tc)
-    else:
-        capacidad_max_credito = 0.0
-
-    st.markdown("---")
-    st.markdown("#### 📋 Resultados del Análisis de Riesgo & Capacidad de Pago")
-    
-    r_c1, r_c2, r_c3, r_c4 = st.columns(4)
-    r_c1.metric("💵 Ingreso Neto Mensual", f"${ingreso_neto:,.2f}")
-    r_c2.metric("📊 Disponible (50% Neto)", f"${disponible_pago:,.2f}")
-    r_c3.metric("📉 Cuota del Crédito", f"${cuota_referencial:,.2f}")
-    r_c4.metric("📈 Cobertura de Dividendo", f"{cobertura:,.2f} veces")
-    
-    st.write("")
-    if aplica_credito == "SI":
-        st.success(f"✅ **APROBADO EN PRE-CALIFICACIÓN:** El cliente cumple con los criterios de cobertura (Cobertura >= 1.0). Capacidad máxima estimada de endeudamiento adicional: **${capacidad_max_credito:,.2f}**")
-    else:
-        st.error(f"❌ **NO APLICA / RIESGO DE SOBREENDEUDAMIENTO:** La cobertura del dividendo es menor a 1.0 o el ingreso neto disponible es insuficiente para absorber la cuota propuesta.")
+    with subtab_sim2:
+        st.markdown("#### 📊 Simulador y Diagnóstico de Scoring Crediticio")
+        st.caption("Responde las siguientes variables clave para estimar tu puntaje interno y probabilidad de aprobación ante instituciones financieras aliadas:")
+        
+        sc_col1, sc_col2 = st.columns(2)
+        with sc_col1:
+            historial_buro = st.selectbox("Historial en Buró de Crédito:", options=["Excelente (Sin atrasos)", "Bueno (Atrasos menores < 30 días)", "Regular (Atrasos entre 30 y 90 días)", "Crítico (Atrasos > 90 días / Cartera castigada)"], index=0)
+            estabilidad_laboral = st.selectbox("Estabilidad Laboral / Actividad Comercial:", options=["Dependiente > 2 años / Negocio formal > 3 años", "Dependiente 1-2 años / Negocio 1-3 años", "Dependiente < 1 año / Negocio < 1 año", "Informal / Sin ingresos fijos comprobables"], index=0)
+        with sc_col2:
+            nivel_endeudamiento_actual = st.selectbox("Ratio de Endeudamiento Actual (Debt-to-Income):", options=["Menor al 20%", "Entre 20% y 40%", "Entre 40% y 60%", "Mayor al 60%"], index=1)
+            garantias_respaldo = st.selectbox("Garantías o Respaldo Patrimonial:", options=["Bienes raíces / Inversiones líquidas", "Vehículo propio / Garante solvente", "Sin garantías o avales sólidos"], index=0)
+            
+        # Puntuación algorítmica ponderada (Score de 0 a 1000)
+        score_base = 350
+        if "Excelente" in historial_buro: score_base += 300
+        elif "Bueno" in historial_buro: score_base += 200
+        elif "Regular" in historial_buro: score_base += 80
+        else: score_base += 10
+        
+        if "Dependiente > 2" in estabilidad_laboral: score_base += 150
+        elif "Dependiente 1-2" in estabilidad_laboral: score_base += 100
+        elif "Dependiente < 1" in estabilidad_laboral: score_base += 50
+        else: score_base += 20
+        
+        if "Menor al 20%" in nivel_endeudamiento_actual: score_base += 120
+        elif "Entre 20% y 40%" in nivel_endeudamiento_actual: score_base += 80
+        elif "Entre 40% y 60%" in nivel_endeudamiento_actual: score_base += 40
+        else: score_base += 10
+        
+        if "Bienes raíces" in garantias_respaldo: score_base += 80
+        elif "Vehículo" in garantias_respaldo: score_base += 50
+        else: score_base += 20
+        
+        st.write("")
+        st.markdown(f"### 📈 Puntaje de Scoring Estimado: **{score_base} / 1000 Puntos**")
+        
+        if score_base >= 750:
+            st.success("🌟 **Perfil Crediticio: EXCELENTE (AAA).** Alta probabilidad de aprobación inmediata con tasas preferenciales en el sistema financiero.")
+        elif score_base >= 600:
+            st.info("👍 **Perfil Crediticio: BUENO (AA / A).** Elegible para la mayoría de productos de consumo y capital de trabajo con condiciones estándar.")
+        elif score_base >= 450:
+            st.warning("⚠️ **Perfil Crediticio: REGULAR (B / C).** Requiere estructuración de garantías adicionales o saneamiento de obligaciones previas.")
+        else:
+            st.error("🚨 **Perfil Crediticio: RIESGOSO / CRITICO.** Necesita asesoría especializada de reestructuración financiera antes de ingresar la solicitud.")
 
 st.write("")
 
@@ -593,9 +610,9 @@ with col_izq:
             st.error("⚠️ Documento de identidad no válido (Debe contener 10 números).")
         else:
             guardar_lead(nombre, cedula, telefono, ciudad, producto_interes)
-            st.success("🎉 ¡Trámite ingresado con éxito en la plataformaEscala | Consultoría Empresarial y Financiera!")
+            st.success("🎉 ¡Trámite ingresado con éxito en la plataforma Escala  Consultoría Empresarial y Financiera !")
             
-            texto_ws = f"Hola Escala | Consultoría Empresarial y Financiera, he completado y autorizado mi pre-calificación en línea.\n\n" \
+            texto_ws = f"Hola Escala Finance & Insurance, he completado y autorizado mi pre-calificación en línea.\n\n" \
                        f"👤 *Consultante:* {nombre}\n" \
                        f"🪪 *Cédula:* {cedula}\n" \
                        f"📱 *Contacto:* {telefono}\n" \
@@ -612,7 +629,7 @@ with col_der:
     st.caption("Toca la fotografía de tu asesor para iniciar el flujo interactivo estructurado:")
     
     flujo_bot_whatsapp = (
-        "🏛️ [ESCALA FINANCE & INSURANCE - ASISTENTE VIRTUAL]\n\n"
+        "🏛️ [Escala  Consultoría Empresarial y Financiera  - ASISTENTE VIRTUAL]\n\n"
         "🤖 ¡Hola! Bienvenido al canal interactivo de Escala. Estoy aquí para ingresar tu trámite de forma inmediata.\n\n"
         "Por favor, bríndame tus DATOS PERSONALES base respondiendo en una sola línea:\n"
         "• Nombre y Apellido Completo:\n"
