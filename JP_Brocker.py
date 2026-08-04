@@ -413,7 +413,7 @@ tab_principal_herramienta, tab_principal_calculadora = st.tabs(["🚀 Herramient
 with tab_principal_herramienta:
     st.markdown("""
     <div class="card-corporativa">
-        <h3>📊 Ecosistema de Finanzas Personales & Corporativas</h3>
+        <h3>📊 Plataforma  de Finanzas Personales & Negocios </h3>
         <p style='color: #4A5568;'>Accede directamente a nuestra plataforma especializada en control de activos, presupuestos y proyecciones de liquidez.</p>
     </div>
     """, unsafe_allow_html=True)
