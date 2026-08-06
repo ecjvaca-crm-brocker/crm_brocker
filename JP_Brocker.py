@@ -407,7 +407,6 @@ st.markdown("<h1 style='text-align: center; font-size: 2.8rem; margin-bottom: 0;
 st.markdown("<p style='text-align: center; color: #D4AF37; font-size: 1.4rem; font-weight: bold; margin-top: 0;'>Tu consultor financiero de confianza</p>", unsafe_allow_html=True)
 st.write("")
 
-# Sección superior organizada mediante solapas incluyendo la nueva herramienta de Capacidad de Pago y Scoring
 tab_principal_herramienta, tab_principal_calculadora = st.tabs(["🚀 Herramienta Financiera (Golden Ledger)", "🧮 Simulador, Capacidad de Pago y Scoring"])
 
 with tab_principal_herramienta:
@@ -536,7 +535,7 @@ with tab_principal_calculadora:
 st.write("")
 
 # ==========================================
-# 5.1 BOTÓN DE DIAGNÓSTICO DE SITUACIÓN ACTUAL (NUEVO)
+# 5.1 BOTÓN DE DIAGNÓSTICO DE SITUACIÓN ACTUAL
 # ==========================================
 st.markdown("### 🫀 Evaluación y Diagnóstico Institucional")
 st.link_button(
@@ -931,6 +930,24 @@ with t3:
             <small style='color:#718096;'><strong>- Mtr. Valeria S. (Consultora)</strong></small>
         </div>
         """, unsafe_allow_html=True)
+
+st.write("---")
+
+# ==========================================
+# 9.1. NUEVO MÓDULO: DEMO SISTEMA CONTABLE (PARTE INFERIOR)
+# ==========================================
+st.markdown("""
+<div class="card-corporativa" style="text-align: center;">
+    <h3>🖥️ Soluciones Contables en la Nube</h3>
+    <p style='color: #4A5568;'>Prueba nuestros portales de demostración para optimizar la contabilidad y gestión de tu negocio.</p>
+</div>
+""", unsafe_allow_html=True)
+
+st.link_button(
+    "DEMO SISTEMA CONTABLE", 
+    "https://sistema.minegocio.com.ec/", 
+    use_container_width=True
+)
 
 st.write("---")
 
