@@ -421,96 +421,130 @@ with tab_ecosistema_cresa:
     str_app.markdown("""
     <div class="card-corporativa" style="border-top: 5px solid #0A2540;">
         <h3>🌐 Ecosistema de Validación y Consultas CRESA</h3>
-        <p style='color: #4A5568;'>Accede de manera rápida y directa a las plataformas institucionales y herramientas oficiales de consulta para validación de datos, RUC, afiliaciones al IESS, multas y registros de prospectos.</p>
+        <p style='color: #4A5568;'>Accede de manera rápida y directa a las plataformas institucionales y herramientas oficiales de consulta, así como a las redes comerciales de Social Selling.</p>
     </div>
     """, unsafe_allow_html=True)
     
-    cresa_c1, cresa_c2 = str_app.columns(2)
+    # Sub-pestañas internas dentro de CRESA para separar las consultas tradicionales del Social Selling
+    sub_cresa_general, sub_cresa_social = str_app.tabs(["📋 Plataformas de Consulta y Validación", "🛒 Social Selling y Canales Comerciales"])
     
-    with cresa_c1:
-        str_app.markdown("""
-        <div style="background:#FFFFFF; padding:18px; border-radius:10px; border:1px solid #E5E7EB; margin-bottom:15px; box-shadow:0 3px 6px rgba(0,0,0,0.03);">
-            <h4>🏢 Plataforma Principal Nexum</h4>
-            <p style="font-size:0.9rem; color:#4A5568;">Sistema integral de gestión y control corporativo.</p>
-        </div>
-        """, unsafe_allow_html=True)
-        str_app.link_button("🚀 Abrir Plataforma Nexum 360", "https://nexum360.com.ec/", use_container_width=True)
+    with sub_cresa_general:
+        cresa_c1, cresa_c2 = str_app.columns(2)
         
-        str_app.markdown("""
-        <div style="background:#FFFFFF; padding:18px; border-radius:10px; border:1px solid #E5E7EB; margin-bottom:15px; box-shadow:0 3px 6px rgba(0,0,0,0.03);">
-            <h4>📄 Consulta de RUC (SRI)</h4>
-            <p style="font-size:0.9rem; color:#4A5568;">Validador oficial de registros únicos de contribuyentes.</p>
-        </div>
-        """, unsafe_allow_html=True)
-        str_app.link_button("🔍 Consultar RUC en SRI", "https://srienlinea.sri.gob.ec/sri-en-linea/SriRucWeb/ConsultaRuc/Consultas/consultaRuc", use_container_width=True)
+        with cresa_c1:
+            str_app.markdown("""
+            <div style="background:#FFFFFF; padding:18px; border-radius:10px; border:1px solid #E5E7EB; margin-bottom:15px; box-shadow:0 3px 6px rgba(0,0,0,0.03);">
+                <h4>🏢 Plataforma Principal Nexum</h4>
+                <p style="font-size:0.9rem; color:#4A5568;">Sistema integral de gestión y control corporativo.</p>
+            </div>
+            """, unsafe_allow_html=True)
+            str_app.link_button("🚀 Abrir Plataforma Nexum 360", "https://nexum360.com.ec/", use_container_width=True)
+            
+            str_app.markdown("""
+            <div style="background:#FFFFFF; padding:18px; border-radius:10px; border:1px solid #E5E7EB; margin-bottom:15px; box-shadow:0 3px 6px rgba(0,0,0,0.03);">
+                <h4>📄 Consulta de RUC (SRI)</h4>
+                <p style="font-size:0.9rem; color:#4A5568;">Validador oficial de registros únicos de contribuyentes.</p>
+            </div>
+            """, unsafe_allow_html=True)
+            str_app.link_button("🔍 Consultar RUC en SRI", "https://srienlinea.sri.gob.ec/sri-en-linea/SriRucWeb/ConsultaRuc/Consultas/consultaRuc", use_container_width=True)
 
-        str_app.markdown("""
-        <div style="background:#FFFFFF; padding:18px; border-radius:10px; border:1px solid #E5E7EB; margin-bottom:15px; box-shadow:0 3px 6px rgba(0,0,0,0.03);">
-            <h4>👤 Certificado de Afiliación IESS (Paso 1)</h4>
-            <p style="font-size:0.9rem; color:#4A5568;">Selección y emisión inicial de certificado de afiliación.</p>
-        </div>
-        """, unsafe_allow_html=True)
-        str_app.link_button("📋 IESS - Certificado de Afiliación (Paso 1)", "https://www.iess.gob.ec/afiliado-web/pages/opcionesGenerales/seleccionCertificadoDeAfiliacion.jsf", use_container_width=True)
+            str_app.markdown("""
+            <div style="background:#FFFFFF; padding:18px; border-radius:10px; border:1px solid #E5E7EB; margin-bottom:15px; box-shadow:0 3px 6px rgba(0,0,0,0.03);">
+                <h4>👤 Certificado de Afiliación IESS (Paso 1)</h4>
+                <p style="font-size:0.9rem; color:#4A5568;">Selección y emisión inicial de certificado de afiliación.</p>
+            </div>
+            """, unsafe_allow_html=True)
+            str_app.link_button("📋 IESS - Certificado de Afiliación (Paso 1)", "https://www.iess.gob.ec/afiliado-web/pages/opcionesGenerales/seleccionCertificadoDeAfiliacion.jsf", use_container_width=True)
 
-        str_app.markdown("""
-        <div style="background:#FFFFFF; padding:18px; border-radius:10px; border:1px solid #E5E7EB; margin-bottom:15px; box-shadow:0 3px 6px rgba(0,0,0,0.03);">
-            <h4>✅ Validación de Usuario sin Aportes (IESS Paso 2)</h4>
-            <p style="font-size:0.9rem; color:#4A5568;">Comprobación de estado para usuarios sin aportaciones vigentes.</p>
-        </div>
-        """, unsafe_allow_html=True)
-        str_app.link_button("📋 IESS - Validación sin Aportes (Paso 2)", "https://www.iess.gob.ec/afiliado-web/pages/opcionesGenerales/validarUsuarioSinAportes.jsf", use_container_width=True)
+            str_app.markdown("""
+            <div style="background:#FFFFFF; padding:18px; border-radius:10px; border:1px solid #E5E7EB; margin-bottom:15px; box-shadow:0 3px 6px rgba(0,0,0,0.03);">
+                <h4>✅ Validación de Usuario sin Aportes (IESS Paso 2)</h4>
+                <p style="font-size:0.9rem; color:#4A5568;">Comprobación de estado para usuarios sin aportaciones vigentes.</p>
+            </div>
+            """, unsafe_allow_html=True)
+            str_app.link_button("📋 IESS - Validación sin Aportes (Paso 2)", "https://www.iess.gob.ec/afiliado-web/pages/opcionesGenerales/validarUsuarioSinAportes.jsf", use_container_width=True)
 
-        str_app.markdown("""
-        <div style="background:#FFFFFF; padding:18px; border-radius:10px; border:1px solid #E5E7EB; margin-bottom:15px; box-shadow:0 3px 6px rgba(0,0,0,0.03);">
-            <h4>👴 Certificado de Jubilación IESS</h4>
-            <p style="font-size:0.9rem; color:#4A5568;">Generación de constancia para pensionistas y jubilados.</p>
-        </div>
-        """, unsafe_allow_html=True)
-        str_app.link_button("📜 Consultar Certificado de Jubilación", "https://www.iess.gob.ec/prjPensionesJubilacion-web/pages/certificadoPensionista/certificadoDePensionista.jsf", use_container_width=True)
+            str_app.markdown("""
+            <div style="background:#FFFFFF; padding:18px; border-radius:10px; border:1px solid #E5E7EB; margin-bottom:15px; box-shadow:0 3px 6px rgba(0,0,0,0.03);">
+                <h4>👴 Certificado de Jubilación IESS</h4>
+                <p style="font-size:0.9rem; color:#4A5568;">Generación de constancia para pensionistas y jubilados.</p>
+            </div>
+            """, unsafe_allow_html=True)
+            str_app.link_button("📜 Consultar Certificado de Jubilación", "https://www.iess.gob.ec/prjPensionesJubilacion-web/pages/certificadoPensionista/certificadoDePensionista.jsf", use_container_width=True)
 
-    with cresa_c2:
-        str_app.markdown("""
-        <div style="background:#FFFFFF; padding:18px; border-radius:10px; border:1px solid #E5E7EB; margin-bottom:15px; box-shadow:0 3px 6px rgba(0,0,0,0.03);">
-            <h4>🏥 Tipo de Afiliación (IESS, ISSFA, ISSPOL)</h4>
-            <p style="font-size:0.9rem; color:#4A5568;">Portal del Ministerio de Salud Pública para cobertura médica.</p>
-        </div>
-        """, unsafe_allow_html=True)
-        str_app.link_button("🩺 Consultar Cobertura en Salud (MSP)", "https://coberturasalud.msp.gob.ec/", use_container_width=True)
+        with cresa_c2:
+            str_app.markdown("""
+            <div style="background:#FFFFFF; padding:18px; border-radius:10px; border:1px solid #E5E7EB; margin-bottom:15px; box-shadow:0 3px 6px rgba(0,0,0,0.03);">
+                <h4>🏥 Tipo de Afiliación (IESS, ISSFA, ISSPOL)</h4>
+                <p style="font-size:0.9rem; color:#4A5568;">Portal del Ministerio de Salud Pública para cobertura médica.</p>
+            </div>
+            """, unsafe_allow_html=True)
+            str_app.link_button("🩺 Consultar Cobertura en Salud (MSP)", "https://coberturasalud.msp.gob.ec/", use_container_width=True)
 
-        str_app.markdown("""
-        <div style="background:#FFFFFF; padding:18px; border-radius:10px; border:1px solid #E5E7EB; margin-bottom:15px; box-shadow:0 3px 6px rgba(0,0,0,0.03);">
-            <h4>⏱️ Cobertura y Tiempo de Afiliación</h4>
-            <p style="font-size:0.9rem; color:#4A5568;">Gestión de calificación de derecho y tiempo aportado.</p>
-        </div>
-        """, unsafe_allow_html=True)
-        str_app.link_button("⏳ Consultar Tiempo de Afiliación (IESS)", "https://app.iess.gob.ec/gestion-calificacion-derecho-web/public/formulariosContacto.jsf", use_container_width=True)
+            str_app.markdown("""
+            <div style="background:#FFFFFF; padding:18px; border-radius:10px; border:1px solid #E5E7EB; margin-bottom:15px; box-shadow:0 3px 6px rgba(0,0,0,0.03);">
+                <h4>⏱️ Cobertura y Tiempo de Afiliación</h4>
+                <p style="font-size:0.9rem; color:#4A5568;">Gestión de calificación de derecho y tiempo aportado.</p>
+            </div>
+            """, unsafe_allow_html=True)
+            str_app.link_button("⏳ Consultar Tiempo de Afiliación (IESS)", "https://app.iess.gob.ec/gestion-calificacion-derecho-web/public/formulariosContacto.jsf", use_container_width=True)
 
-        str_app.markdown("""
-        <div style="background:#FFFFFF; padding:18px; border-radius:10px; border:1px solid #E5E7EB; margin-bottom:15px; box-shadow:0 3px 6px rgba(0,0,0,0.03);">
-            <h4>🚗 Multas y Citaciones ANT</h4>
-            <p style="font-size:0.9rem; color:#4A5568;">Agencia Nacional de Tránsito - Consulta de valores pendientes.</p>
-        </div>
-        """, unsafe_allow_html=True)
-        str_app.link_button("🚦 Consultar Multas ANT", "https://consultaweb.ant.gob.ec/PortalWEB/paginas/clientes/clp_criterio_consulta.jsp", use_container_width=True)
+            str_app.markdown("""
+            <div style="background:#FFFFFF; padding:18px; border-radius:10px; border:1px solid #E5E7EB; margin-bottom:15px; box-shadow:0 3px 6px rgba(0,0,0,0.03);">
+                <h4>🚗 Multas y Citaciones ANT</h4>
+                <p style="font-size:0.9rem; color:#4A5568;">Agencia Nacional de Tránsito - Consulta de valores pendientes.</p>
+            </div>
+            """, unsafe_allow_html=True)
+            str_app.link_button("🚦 Consultar Multas ANT", "https://consultaweb.ant.gob.ec/PortalWEB/paginas/clientes/clp_criterio_consulta.jsp", use_container_width=True)
 
-        str_app.markdown("""
-        <div style="background:#FFFFFF; padding:18px; border-radius:10px; border:1px solid #E5E7EB; margin-bottom:15px; box-shadow:0 3px 6px rgba(0,0,0,0.03);">
-            <h4>🎓 Validación Fecha de Nacimiento (SECAP)</h4>
-            <p style="font-size:0.9rem; color:#4A5568;">Plataforma de registro y validación de usuarios.</p>
-        </div>
-        """, unsafe_allow_html=True)
-        str_app.link_button("🎓 SECAP - Validación de Datos", "http://si.secap.gob.ec/sisecap/logeo_web/usuario_nuevo.php", use_container_width=True)
+            str_app.markdown("""
+            <div style="background:#FFFFFF; padding:18px; border-radius:10px; border:1px solid #E5E7EB; margin-bottom:15px; box-shadow:0 3px 6px rgba(0,0,0,0.03);">
+                <h4>🎓 Validación Fecha de Nacimiento (SECAP)</h4>
+                <p style="font-size:0.9rem; color:#4A5568;">Plataforma de registro y validación de usuarios.</p>
+            </div>
+            """, unsafe_allow_html=True)
+            str_app.link_button("🎓 SECAP - Validación de Datos", "http://si.secap.gob.ec/sisecap/logeo_web/usuario_nuevo.php", use_container_width=True)
 
-        str_app.markdown("""
-        <div style="background:#FFFFFF; padding:18px; border-radius:10px; border:1px solid #E5E7EB; margin-bottom:15px; box-shadow:0 3px 6px rgba(0,0,0,0.03);">
-            <h4>💼 Nuevo Prospecto (Oficina Virtual Nexum)</h4>
-            <p style="font-size:0.9rem; color:#4A5568;">Registro directo en la oficina virtual de prospectos.</p>
-        </div>
-        """, unsafe_allow_html=True)
-        str_app.link_button("📝 Registrar Nuevo Prospecto (Nexum)", "https://nexum360.com.ec/oficina virtual/nuevo-prospecto", use_container_width=True)
+            str_app.markdown("""
+            <div style="background:#FFFFFF; padding:18px; border-radius:10px; border:1px solid #E5E7EB; margin-bottom:15px; box-shadow:0 3px 6px rgba(0,0,0,0.03);">
+                <h4>💼 Nuevo Prospecto (Oficina Virtual Nexum)</h4>
+                <p style="font-size:0.9rem; color:#4A5568;">Registro directo en la oficina virtual de prospectos.</p>
+            </div>
+            """, unsafe_allow_html=True)
+            str_app.link_button("📝 Registrar Nuevo Prospecto (Nexum)", "https://nexum360.com.ec/oficina virtual/nuevo-prospecto", use_container_width=True)
 
-str_app.write("")
+    with sub_cresa_social:
+        str_app.markdown("#### 🛍️ Canales de Social Selling")
+        str_app.caption("Acceso directo a las plataformas comerciales integradas:")
+        
+        social_c1, social_c2, social_c3 = str_app.columns(3)
 
+        with social_c1:
+            str_app.markdown("""
+            <div style="background:#FFFFFF; padding:18px; border-radius:10px; border:1px solid #E5E7EB; margin-bottom:15px; box-shadow:0 3px 6px rgba(0,0,0,0.03); text-align: center;">
+                <h4>🏠 Orve Hogar</h4>
+                <p style="font-size:0.85rem; color:#4A5568;">Muebles, decoración y soluciones para el hogar.</p>
+            </div>
+            """, unsafe_allow_html=True)
+            str_app.link_button("🌐 Visitar Orve Hogar", "https://www.orvehogar.com", use_container_width=True)
+
+        with social_c2:
+            str_app.markdown("""
+            <div style="background:#FFFFFF; padding:18px; border-radius:10px; border:1px solid #E5E7EB; margin-bottom:15px; box-shadow:0 3px 6px rgba(0,0,0,0.03); text-align: center;">
+                <h4>⚡ Almacenes Japón</h4>
+                <p style="font-size:0.85rem; color:#4A5568;">Electrodomésticos, tecnología y motos.</p>
+            </div>
+            """, unsafe_allow_html=True)
+            str_app.link_button("🌐 Visitar Almacenes Japón", "https://www.almacenesjapon.com", use_container_width=True)
+
+        with social_c3:
+            str_app.markdown("""
+            <div style="background:#FFFFFF; padding:18px; border-radius:10px; border:1px solid #E5E7EB; margin-bottom:15px; box-shadow:0 3px 6px rgba(0,0,0,0.03); text-align: center;">
+                <h4>💳 Créditos Económicos</h4>
+                <p style="font-size:0.85rem; color:#4A5568;">Almacenes de consumo masivo y créditos directos.</p>
+            </div>
+            """, unsafe_allow_html=True)
+            str_app.link_button("🌐 Visitar Créditos Económicos", "https://www.creditoseconomicos.com", use_container_width=True)
 # ==============================================================================
 # 7. DIAGNÓSTICO DE SITUACIÓN ACTUAL Y BANNER ROTATIVO
 # ==============================================================================
