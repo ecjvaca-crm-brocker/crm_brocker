@@ -20,7 +20,7 @@ NUMERO_WHATSAPP = "593998076979"
 PASSWORD_DASHBOARD = "Escala2026" 
 
 str_app.set_page_config(
-    page_title="Escala Corporate | Fintech Brokerage & Valuation Hub", 
+    page_title="Escala| Consultoria financera emresarial ", 
     page_icon="🏛️", 
     layout="wide"
 )
@@ -94,7 +94,7 @@ def cargar_datos_google_sheet(url_sheet):
 init_db()
 
 # ==============================================================================
-# 3. MOTOR DE BROKERAGE FINANCIERO, EVALUACIÓN ASÍNCRONA Y ADJUDICACIÓN
+# 3. MOTOR FINANCIERO,
 # ==============================================================================
 ENTIDADES_ALIADAS = [
     {"id": "BANCO_A", "nombre": "Banco Guayaquil / Microcrédito", "tasa_base": 15.5, "tiempo_seg": 2.5, "max_monto": 25000},
@@ -171,7 +171,7 @@ def adjudicar_mejor_oferta(ofertas):
     return ordenadas[0], ordenadas
 
 # ==============================================================================
-# 4. GENERADOR DE INFORMES PDF Y GRÁFICOS (MCKINSEY METODOLOGÍA)
+# 4. GENERADOR DE INFORMES PDF Y GRÁFICOS 
 # ==============================================================================
 class PDFConsultoria(FPDF):
     def header(self):
@@ -397,19 +397,19 @@ str_app.markdown("""
 # ==============================================================================
 # 6. CABECERA Y NAVEGACIÓN PRINCIPAL
 # ==============================================================================
-str_app.markdown("<h1 style='text-align: center; font-size: 2.8rem; margin-bottom: 0;'>🏛️ Escala Corporate: Brokerage & Valuation Hub</h1>", unsafe_allow_html=True)
+str_app.markdown("<h1 style='text-align: center; font-size: 2.8rem; margin-bottom: 0;'>🏛️ Escala Consultoria financiera empresarial </h1>", unsafe_allow_html=True)
 str_app.markdown("<p style='text-align: center; color: #D4AF37; font-size: 1.4rem; font-weight: bold; margin-top: 0;'>Ecosistema Digital de Brokerage Financiero B2B2C e Inteligencia Fiscal</p>", unsafe_allow_html=True)
 str_app.write("")
 
 tab_brokerage, tab_herramientas, tab_valuacion_tax, tab_cresa = str_app.tabs([
-    "⚡ Marketplace de Crédito & Precalificación (B2B2C)", 
+    "⚡ Crédito & Precalificación (B2B2C)", 
     "🧮 Simuladores, CDP, Retiro & Amortización",
     "📈 Premium Valuation & Tax Hub (NIIF / LRTI)",
     "🌐 Ecosistema CRESA & Validadores"
 ])
 
 # ==============================================================================
-# PESTAÑA 1: MARKETPLACE DIGITAL DE CRÉDITO & BROKERAGE B2B2C
+# PESTAÑA 1: MOTOR DIGITAL DE CRÉDITO  B2B2C
 # ==============================================================================
 with tab_brokerage:
     str_app.markdown("""
