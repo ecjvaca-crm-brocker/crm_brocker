@@ -30,7 +30,7 @@ EMAIL_EMISOR = "consultoria@escalafinance.com.ec"
 PASSWORD_EMAIL = "tu_password_o_app_token"
 
 str_app.set_page_config(
-    page_title="Escala Consultoria fnanciera Empresarial", 
+    page_title="Escala Consultoria Financiera Empresarial", 
     page_icon="🏛️", 
     layout="wide"
 )
@@ -372,7 +372,7 @@ str_app.markdown("""
 # ==============================================================================
 # 6. CABECERA PRINCIPAL Y PESTAÑAS DE NAVEGACIÓN
 # ==============================================================================
-str_app.markdown("<h1 style='text-align: center; font-size: 2.8rem;'>🏛️ Escala Corporate: Brokerage & Valuation Hub</h1>", unsafe_allow_html=True)
+str_app.markdown("<h1 style='text-align: center; font-size: 2.8rem;'>🏛️ Escala Consultoria Financiera Empresarial</h1>", unsafe_allow_html=True)
 str_app.markdown("<p style='text-align: center; color: #D4AF37; font-size: 1.3rem; font-weight: bold;'>Solución Integral de Intermediación Financiera e Inteligencia Fiscal</p>", unsafe_allow_html=True)
 
 tab_solicitud, tab_calificacion, tab_simuladores, tab_valuacion, tab_cresa = str_app.tabs([
