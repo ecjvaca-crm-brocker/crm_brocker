@@ -10,3 +10,10 @@ streamlit
 yfinance
 pandas
 matplotlib
+streamlit
+pandas
+numpy
+fpdf2
+matplotlib
+yfinance
+openpyxl
