@@ -18,19 +18,19 @@ import matplotlib.pyplot as plt
 import yfinance as yf
 
 # ==============================================================================
-# 1. CONFIGURACIONES INICIALES Y CONSTANTES GENERALES DE LA APLICACIÓN
+# 1. CONFIGURACIONES INICIALES Y CONSTANTES GENERALES
 # ==============================================================================
 NUMERO_WHATSAPP = "593998076979" 
 PASSWORD_DASHBOARD = "Escala2026" 
 
-# Credenciales SMTP para envío automático de correos (Ajustar con tu proveedor de email)
+# Credenciales SMTP para envío automático de correos
 SMTP_SERVER = "smtp.gmail.com"
 SMTP_PORT = 587
 EMAIL_EMISOR = "consultoria@escalafinance.com.ec"
 PASSWORD_EMAIL = "tu_password_o_app_token"
 
 str_app.set_page_config(
-    page_title="Escala Corporate | Brokerage Financiero & Valuation Hub", 
+    page_title="Escala Consultoria fnanciera Empresarial", 
     page_icon="🏛️", 
     layout="wide"
 )
@@ -55,7 +55,7 @@ if 'tasa_fiscal_ecuador' not in str_app.session_state:
 if 'respuestas_bancos_manual' not in str_app.session_state:
     str_app.session_state.respuestas_bancos_manual = []
 
-# CATALOGO TÉCNICO DE TIPOS Y DESTINOS DE CRÉDITO
+# CATÁLOGO TÉCNICO DE TIPOS Y DESTINOS DE CRÉDITO
 CATALOGO_CREDITO = {
     "Consumo": [
         "Estudios / Capacitación / Maestrías",
@@ -149,11 +149,9 @@ def cargar_plantilla_excel_bytes():
         return f.read()
 
 def prellenar_excel_solicitud(datos):
-    """Carga el Excel oficial 'Solicitud de Crédito ESCALA CONSULTORES.xlsx' y rellena sus celdas."""
     wb = openpyxl.load_workbook(NOMBRE_PLANTILLA_EXCEL)
     ws = wb["Sol. Crédito PN"]
     
-    # Inserción de datos clave en el formato oficial
     ws["D6"] = datetime.now().strftime("%Y-%m-%d")
     ws["D9"] = datos.get("monto", 0)
     ws["O9"] = datos.get("plazo", 12)
@@ -254,21 +252,18 @@ def enviar_expediente_por_correo(datos_solicitud, pdf_solicitud_bytes, excel_byt
         """
         msg.attach(MIMEText(body, 'plain'))
         
-        # Adjuntar PDF
         p_pdf = MIMEBase('application', 'octet-stream')
         p_pdf.set_payload(pdf_solicitud_bytes.getvalue())
         encoders.encode_base64(p_pdf)
         p_pdf.add_header('Content-Disposition', f'attachment; filename="Resumen_Solicitud_{datos_solicitud["cedula"]}.pdf"')
         msg.attach(p_pdf)
         
-        # Adjuntar Excel
         p_xls = MIMEBase('application', 'octet-stream')
         p_xls.set_payload(excel_bytes.getvalue())
         encoders.encode_base64(p_xls)
         p_xls.add_header('Content-Disposition', f'attachment; filename="Solicitud_Oficial_Escala_{datos_solicitud["cedula"]}.xlsx"')
         msg.attach(p_xls)
         
-        # Adjuntar Archivos cargados
         for adj in archivos_adjuntos:
             if adj is not None:
                 p_file = MIMEBase('application', 'octet-stream')
@@ -399,7 +394,6 @@ with tab_solicitud:
     </div>
     """, unsafe_allow_html=True)
     
-    # Opción de descarga directa de la plantilla vacía
     with str_app.expander("📥 Descargar Plantilla Oficial Excel Vacía", expanded=False):
         try:
             p_bytes = cargar_plantilla_excel_bytes()
@@ -474,13 +468,8 @@ with tab_solicitud:
                 "empresa": empresa, "cargo": cargo, "ingresos_fijos": ing_fijos, "gastos_familiares": gastos_fam
             }
             
-            # 1. Generar Excel rellenado
             excel_bytes = prellenar_excel_solicitud(datos_sol)
-            
-            # 2. Generar PDF resumen
             pdf_bytes = generar_pdf_solicitud(datos_sol)
-            
-            # 3. Empaquetar y enviar por email
             adjuntos = [doc_cedula, doc_ingresos, doc_planilla]
             correos = [b["email"] for b in ENTIDADES_DESTINO if b["nombre"] in bancos_sel]
             
@@ -552,9 +541,14 @@ with tab_calificacion:
                 str_app.dataframe(top_3[["Entidad", "Monto Aprobado", "Tasa (TEA %)", "Plazo (Meses)", "Observación"]], use_container_width=True)
                 
                 mejor_o = top_3.iloc[0]
-                str_app.success(f"🥇 **Opción Prioritaria Adjudicada:** {mejor_o['Entidad']} por **${mejor_o['Monto Aprobado']:,.2f}** al **{mejor_o['Tasa (TEA %)}% TEA**.")
+                entidad_ganadora = mejor_o['Entidad']
+                monto_ganador = mejor_o['Monto Aprobado']
+                tasa_ganadora = mejor_o['Tasa (TEA %)']
                 
-                msg_ws = f"Hola, he revisado el Top 3 de ofertas para mi crédito. La opción ganadora adjudicada es {mejor_o['Entidad']} por ${mejor_o['Monto Aprobado']} al {mejor_o['Tasa (TEA %)}%. Deseo continuar con el desembolso."
+                # Corrección de sintaxis de f-string en linea 555
+                str_app.success(f"🥇 **Opción Prioritaria Adjudicada:** {entidad_ganadora} por **${monto_ganador:,.2f}** al **{tasa_ganadora}% TEA**.")
+                
+                msg_ws = f"Hola, he revisado el Top 3 de ofertas para mi crédito. La opción ganadora adjudicada es {entidad_ganadora} por ${monto_ganador:,.2f} al {tasa_ganadora}% TEA. Deseo continuar con el desembolso."
                 url_ws = f"https://api.whatsapp.com/send?phone={NUMERO_WHATSAPP}&text={urllib.parse.quote(msg_ws)}"
                 str_app.link_button("🟢 Continuar Desembolso de Oferta Adjudicada vía WhatsApp", url_ws, type="primary")
             else:
@@ -707,7 +701,7 @@ with tab_cresa:
 # INDICADORES ECONÓMICOS EN TIEMPO REAL & PANEL ADMINISTRATIVO
 # ==============================================================================
 str_app.write("---")
-str_app.markdown("### 📊 Indicadores Económicos Globals")
+str_app.markdown("### 📊 Indicadores Económicos Globales")
 
 @str_app.cache_data(ttl=300)
 def obtener_indicadores():
