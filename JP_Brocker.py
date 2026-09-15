@@ -18,7 +18,7 @@ import streamlit as st
 # ==========================================
 st.set_page_config(
     page_title="ESCALA Consultoría Financiera y Empresarial",
-    page_layout="wide",
+    layout="wide",  # ✅ Parámetro correcto
     initial_sidebar_state="expanded",
 )
 
