@@ -17,3 +17,7 @@ fpdf2
 matplotlib
 yfinance
 openpyxl
+streamlit
+openpyxl
+pandas
+gspread
