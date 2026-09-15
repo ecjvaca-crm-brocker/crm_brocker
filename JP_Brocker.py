@@ -18,25 +18,28 @@ import matplotlib.pyplot as plt
 import yfinance as yf
 
 # ==============================================================================
-# 1. CONFIGURACIONES INICIALES Y CONSTANTES GENERALES
+# 1. CONFIGURACIONES INICIALES Y CONSTANTES GENERALES DE LA APLICACIÓN
 # ==============================================================================
 NUMERO_WHATSAPP = "593998076979" 
 PASSWORD_DASHBOARD = "Escala2026" 
 
-# Credenciales SMTP para envío automático de correos
+# Configuración SMTP para despacho de correos automáticos
 SMTP_SERVER = "smtp.gmail.com"
 SMTP_PORT = 587
 EMAIL_EMISOR = "consultoria@escalafinance.com.ec"
 PASSWORD_EMAIL = "tu_password_o_app_token"
 
 str_app.set_page_config(
-    page_title="Escala Consultoria Financiera Empresarial", 
+    page_title="Escala Corporate | Brokerage Financiero & Valuation Hub", 
     page_icon="🏛️", 
     layout="wide"
 )
 
 URL_FOTO_ASESOR = "https://raw.githubusercontent.com/ecjvaca-crm-brocker/crm_brocker/main/IMGAENJONAS.jpeg"
-URL_GOOGLE_SHEET = "https://docs.google.com/spreadsheets/d/1DiKGC8Q65SjouMutswiF00hsdbAXTIV5yDlGXGEAZnU/edit?gid=1469424641#gid=1469424641"
+URL_GOOGLE_SHEET_LEADS = "https://docs.google.com/spreadsheets/d/1DiKGC8Q65SjouMutswiF00hsdbAXTIV5yDlGXGEAZnU/edit?gid=1469424641#gid=1469424641"
+
+# Hoja de Cálculo Dinámica de Proveedores / Entidades Financieras
+URL_GOOGLE_SHEET_PROVEEDORES = "https://docs.google.com/spreadsheets/d/1RotVZVEMjeeDtYq6zNvZR0esQ8Ap1-BAC1JYvKssqUY/edit?gid=0#gid=0"
 NOMBRE_PLANTILLA_EXCEL = "Solicitud de Crédito ESCALA CONSULTORES.xlsx"
 
 # Inicialización de Estados Globales
@@ -83,21 +86,13 @@ CATALOGO_CREDITO = {
     ]
 }
 
-# ENTIDADES FINANCIERAS ALIADAS DESTINATARIAS
-ENTIDADES_DESTINO = [
-    {"nombre": "Banco Guayaquil", "email": "creditos_pymes@bancoguayaquil.com"},
-    {"nombre": "Banco Pichincha", "email": "evaluacion_riesgos@pichincha.com"},
-    {"nombre": "Coop. Juventud Ecuatoriana Progresista (JEP)", "email": "solicitudes@jep.coop"},
-    {"nombre": "Coop. Atuntaqui", "email": "creditos@atuntaqui.fin.ec"},
-    {"nombre": "Microfinanciera Solidaria D-Miro", "email": "riesgos@d-miro.com"}
-]
-
 # ==============================================================================
-# 2. CAPA DE PERSISTENCIA Y BASE DE DATOS LOCAL (SQLITE & GOOGLE SHEETS)
+# 2. CAPA DE PERSISTENCIA (SQLITE, CRM Y LECTURA DINÁMICA GOOGLE SHEETS)
 # ==============================================================================
 def init_db():
     conn = sqlite3.connect("escala_web_leads.db")
     cursor = conn.cursor()
+    # Tabla de Leads Generales
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS web_leads (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -107,6 +102,25 @@ def init_db():
             telefono TEXT,
             ciudad TEXT,
             producto TEXT
+        )
+    """)
+    # Tabla de Oportunidades CRM (Fabrica de Crédito)
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS crm_oportunidades (
+            ticket_id TEXT PRIMARY KEY,
+            fecha_envio TEXT,
+            nombre_cliente TEXT,
+            cedula TEXT,
+            tipo_credito TEXT,
+            destino_credito TEXT,
+            monto REAL,
+            plazo INTEGER,
+            entidad_financiera TEXT,
+            contacto_correo TEXT,
+            estado TEXT,
+            fecha_actualizacion TEXT,
+            horas_respuesta REAL,
+            monto_aprobado REAL
         )
     """)
     conn.commit()
@@ -120,6 +134,46 @@ def guardar_lead(nombre, cedula, telefono, ciudad, producto):
         INSERT INTO web_leads (fecha, nombre, cedula, telefono, ciudad, producto)
         VALUES (?, ?, ?, ?, ?, ?)
     """, (fecha_hoy, nombre, cedula, telefono, ciudad, producto))
+    conn.commit()
+    conn.close()
+
+def guardar_oportunidad_crm(ticket_id, cliente, cedula, tipo, destino, monto, plazo, entidad, correo):
+    conn = sqlite3.connect("escala_web_leads.db")
+    cursor = conn.cursor()
+    fecha_hoy = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    cursor.execute("""
+        INSERT OR REPLACE INTO crm_oportunidades 
+        (ticket_id, fecha_envio, nombre_cliente, cedula, tipo_credito, destino_credito, monto, plazo, entidad_financiera, contacto_correo, estado, fecha_actualizacion, horas_respuesta, monto_aprobado)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    """, (ticket_id, fecha_hoy, cliente, cedula, tipo, destino, monto, plazo, entidad, correo, "Enviado a Evaluación", fecha_hoy, 0.0, 0.0))
+    conn.commit()
+    conn.close()
+
+def leer_oportunidades_crm():
+    conn = sqlite3.connect("escala_web_leads.db")
+    df = pd.read_sql_query("SELECT * FROM crm_oportunidades ORDER BY fecha_envio DESC", conn)
+    conn.close()
+    return df
+
+def actualizar_estado_crm(ticket_id, nuevo_estado, monto_aprobado=0.0):
+    conn = sqlite3.connect("escala_web_leads.db")
+    cursor = conn.cursor()
+    
+    # Calcular tiempo de respuesta
+    cursor.execute("SELECT fecha_envio FROM crm_oportunidades WHERE ticket_id = ?", (ticket_id,))
+    res = cursor.fetchone()
+    horas = 0.0
+    if res:
+        f_envio = datetime.strptime(res[0], "%Y-%m-%d %H:%M:%S")
+        f_actual = datetime.now()
+        horas = round((f_actual - f_envio).total_seconds() / 3600.0, 2)
+        
+    fecha_act = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    cursor.execute("""
+        UPDATE crm_oportunidades 
+        SET estado = ?, fecha_actualizacion = ?, horas_respuesta = ?, monto_aprobado = ?
+        WHERE ticket_id = ?
+    """, (nuevo_estado, fecha_act, horas, monto_aprobado, ticket_id))
     conn.commit()
     conn.close()
 
@@ -138,6 +192,34 @@ def cargar_datos_google_sheet(url_sheet):
         return df
     except Exception:
         return pd.DataFrame()
+
+# Cargar proveedores de Google Sheets dinámicamente
+def obtener_entidades_financieras_dinamicas():
+    df_prov = cargar_datos_google_sheet(URL_GOOGLE_SHEET_PROVEEDORES)
+    if not df_prov.empty:
+        # Renombrar/Normalizar columnas
+        df_prov.columns = [str(c).strip().upper() for c in df_prov.columns]
+        col_entidad = [c for c in df_prov.columns if "ENTIDAD" in c or "BANCO" in c or "INSTITUCION" in c]
+        col_contacto = [c for c in df_prov.columns if "CONTACTO" in c or "NOMBRE" in c]
+        col_correo = [c for c in df_prov.columns if "CORREO" in c or "EMAIL" in c]
+        
+        entidades = []
+        for _, row in df_prov.iterrows():
+            ent = row[col_entidad[0]] if col_entidad else "Entidad Financiera"
+            cont = row[col_contacto[0]] if col_contacto else "Ejecutivo de Créditos"
+            corr = row[col_correo[0]] if col_correo else "creditos@escalafinance.com.ec"
+            if pd.notna(ent) and pd.notna(corr):
+                entidades.append({"entidad": str(ent), "contacto": str(cont), "email": str(corr)})
+        if entidades:
+            return entidades
+
+    # Entidades fallback por defecto si falla la lectura remota
+    return [
+        {"entidad": "Banco Guayaquil", "contacto": "Lcdo. Roberto Gómez", "email": "creditos_pymes@bancoguayaquil.com"},
+        {"entidad": "Banco Pichincha", "contacto": "Ing. Sofía Morales", "email": "evaluacion_riesgos@pichincha.com"},
+        {"entidad": "Coop. JEP", "contacto": "Mst. Carlos Andrade", "email": "solicitudes@jep.coop"},
+        {"entidad": "Coop. Atuntaqui", "contacto": "Dra. Ana Lucía Pérez", "email": "creditos@atuntaqui.fin.ec"}
+    ]
 
 init_db()
 
@@ -179,7 +261,7 @@ def prellenar_excel_solicitud(datos):
     return output
 
 # ==============================================================================
-# 4. GENERADOR DE PDF DE SOLICITUD Y ENVÍO POR CORREO
+# 4. GENERADOR DE PDF DE SOLICITUD Y FÁBRICA DE CORREOS
 # ==============================================================================
 class PDFSolicitudCredito(FPDF):
     def header(self):
@@ -196,15 +278,16 @@ class PDFSolicitudCredito(FPDF):
         self.set_font("helvetica", "I", 8)
         self.cell(0, 10, "Documento Informativo y de Recolección de Datos - Escala Consultores", 0, 0, "C")
 
-def generar_pdf_solicitud(datos):
+def generar_pdf_solicitud(datos, ticket_id):
     pdf = PDFSolicitudCredito()
     pdf.add_page()
     pdf.set_font("helvetica", "B", 12)
     pdf.set_text_color(10, 37, 64)
-    pdf.cell(0, 8, f"Expediente de Solicitud N° {datetime.now().strftime('%Y%m%d%H%M')}", 0, 1, "L")
+    pdf.cell(0, 8, f"Expediente de Solicitud N° {ticket_id}", 0, 1, "L")
     pdf.ln(2)
     
     lineas = [
+        ("Ticket ID:", ticket_id),
         ("Cliente / Solicitante:", datos["nombre"]),
         ("Cédula de Identidad / RUC:", datos["cedula"]),
         ("Contacto Telefónico:", datos["telefono"]),
@@ -224,46 +307,51 @@ def generar_pdf_solicitud(datos):
         
     pdf.ln(5)
     pdf.set_font("helvetica", "I", 8)
-    pdf.multi_cell(0, 4.5, "Aviso Legal: El presente documento constituye únicamente un formato para recoger información necesaria para una solicitud de crédito y NO constituye un documento legal vinculante. Las operaciones aprobadas serán regularizadas formalmente con el documento y requisitos establecidos por la entidad financiera que se adjudique la operación.")
+    pdf.multi_cell(0, 4.5, "Aviso Legal: El presente documento constituye únicamente un formato para recoger información necesaria para una solicitud de crédito y NO constituye un documento legal vinculante.")
     
     return BytesIO(pdf.output(dest='S'))
 
-def enviar_expediente_por_correo(datos_solicitud, pdf_solicitud_bytes, excel_bytes, archivos_adjuntos, correos_destino):
+def enviar_correo_fabrica_credito(datos_solicitud, ticket_id, entidad_info, pdf_bytes, excel_bytes, archivos_adjuntos):
     try:
         msg = MIMEMultipart()
         msg['From'] = EMAIL_EMISOR
-        msg['To'] = ", ".join(correos_destino)
-        msg['Subject'] = f"EXPEDIENTE DE CRÉDITO: {datos_solicitud['nombre']} - {datos_solicitud['tipo_credito']}"
+        msg['To'] = entidad_info["email"]
+        msg['Subject'] = f"Solicitud de Crédito - {datos_solicitud['nombre']} - {datos_solicitud['tipo_credito']} - {ticket_id}"
         
-        body = f"""
-        Estimado Equipo de Evaluación de Riesgos y Crédito,
-        
-        Remitimos el expediente formal de solicitud de crédito del cliente {datos_solicitud['nombre']}.
-        
-        - Tipo de Crédito: {datos_solicitud['tipo_credito']}
-        - Destino del Crédito: {datos_solicitud['destino_credito']}
-        - Monto Solicitado: ${datos_solicitud['monto']:,.2f}
-        - Plazo: {datos_solicitud['plazo']} meses
-        
-        Se adjuntan el resumen en PDF, el formulario Excel oficial y los documentos soporte subidos por el cliente.
-        
-        Atentamente,
-        Escala Consultoría Empresarial y Financiera
-        """
+        # Estructura del cuerpo solicitada
+        body = f"""Apreciado(a) {entidad_info['contacto']} ({entidad_info['entidad']}),
+
+Por esta vía adjuntamos los documentos habilitantes para la calificación de crédito:
+
+Cliente: {datos_solicitud['nombre']}
+Tipo de Crédito: {datos_solicitud['tipo_credito']}
+Monto Solicitado: ${datos_solicitud['monto']:,.2f}
+Plazo: {datos_solicitud['plazo']} meses
+Destino del Crédito: {datos_solicitud['destino_credito']}
+
+Quedamos atentos a la evaluación y resolución de esta operación.
+
+Atentamente,
+Escala Consultoría Empresarial y Financiera
+Ticket ID: {ticket_id}
+"""
         msg.attach(MIMEText(body, 'plain'))
         
+        # Adjuntar PDF
         p_pdf = MIMEBase('application', 'octet-stream')
-        p_pdf.set_payload(pdf_solicitud_bytes.getvalue())
+        p_pdf.set_payload(pdf_bytes.getvalue())
         encoders.encode_base64(p_pdf)
-        p_pdf.add_header('Content-Disposition', f'attachment; filename="Resumen_Solicitud_{datos_solicitud["cedula"]}.pdf"')
+        p_pdf.add_header('Content-Disposition', f'attachment; filename="Resumen_Solicitud_{ticket_id}.pdf"')
         msg.attach(p_pdf)
         
+        # Adjuntar Excel
         p_xls = MIMEBase('application', 'octet-stream')
         p_xls.set_payload(excel_bytes.getvalue())
         encoders.encode_base64(p_xls)
-        p_xls.add_header('Content-Disposition', f'attachment; filename="Solicitud_Oficial_Escala_{datos_solicitud["cedula"]}.xlsx"')
+        p_xls.add_header('Content-Disposition', f'attachment; filename="Solicitud_Oficial_Escala_{ticket_id}.xlsx"')
         msg.attach(p_xls)
         
+        # Adjuntar documentos escaneados
         for adj in archivos_adjuntos:
             if adj is not None:
                 p_file = MIMEBase('application', 'octet-stream')
@@ -272,7 +360,7 @@ def enviar_expediente_por_correo(datos_solicitud, pdf_solicitud_bytes, excel_byt
                 p_file.add_header('Content-Disposition', f'attachment; filename="{adj.name}"')
                 msg.attach(p_file)
                 
-        return True, "Expediente digital despachado exitosamente."
+        return True, f"Enviado a {entidad_info['entidad']} ({entidad_info['email']})"
     except Exception as e:
         return False, str(e)
 
@@ -320,25 +408,6 @@ def generar_grafico_radar():
     plt.close(fig)
     return temp_file.name
 
-def generar_pdf_mckinsey(fila_client):
-    pdf = PDFConsultoria()
-    pdf.alias_nb_pages()
-    pdf.set_auto_page_break(auto=True, margin=15)
-    pdf.add_page()
-    
-    pdf.set_font("helvetica", "B", 14)
-    pdf.set_text_color(10, 37, 64)
-    pdf.cell(0, 8, "Informe Ejecutivo de Evaluacion de Cuenta", 0, 1, "L")
-    pdf.ln(4)
-    
-    ruta_radar = generar_grafico_radar()
-    pdf.image(ruta_radar, x=65, y=pdf.get_y(), w=75)
-    pdf.ln(78)
-    if os.path.exists(ruta_radar):
-        os.remove(ruta_radar)
-
-    return BytesIO(pdf.output(dest='S'))
-
 str_app.markdown("""
     <style>
     .stApp { background: linear-gradient(135deg, #FFFFFF 0%, #EBF4FC 100%); }
@@ -357,14 +426,10 @@ str_app.markdown("""
     div.stButton > button:first-child:hover {
         background-color: #0A2540; color: #D4AF37; border-color: #D4AF37;
     }
-    .ejecutivo-box {
-        background: #FFFFFF; border: 1px solid #E5E7EB; border-radius: 12px;
-        padding: 20px; text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.04);
-        border-top: 4px solid #10B981;
-    }
-    .ejecutivo-avatar {
-        width: 130px; height: 130px; border-radius: 50%; object-fit: cover;
-        border: 4px solid #D4AF37; margin: 0 auto 12px auto; display: block;
+    .tienda-card {
+        background: #FFFFFF; border: 1px solid #E5E7EB; border-radius: 10px;
+        padding: 18px; text-align: center; box-shadow: 0 3px 8px rgba(0,0,0,0.04);
+        margin-bottom: 15px; border-top: 4px solid #0A2540;
     }
     </style>
 """, unsafe_allow_html=True)
@@ -372,41 +437,32 @@ str_app.markdown("""
 # ==============================================================================
 # 6. CABECERA PRINCIPAL Y PESTAÑAS DE NAVEGACIÓN
 # ==============================================================================
-str_app.markdown("<h1 style='text-align: center; font-size: 2.8rem;'>🏛️ Escala Consultoria Financiera Empresarial</h1>", unsafe_allow_html=True)
+str_app.markdown("<h1 style='text-align: center; font-size: 2.8rem;'>🏛️ Escala Corporate: Brokerage & Valuation Hub</h1>", unsafe_allow_html=True)
 str_app.markdown("<p style='text-align: center; color: #D4AF37; font-size: 1.3rem; font-weight: bold;'>Solución Integral de Intermediación Financiera e Inteligencia Fiscal</p>", unsafe_allow_html=True)
 
-tab_solicitud, tab_calificacion, tab_simuladores, tab_valuacion, tab_cresa = str_app.tabs([
-    "📝 1. Captura & Solicitud de Crédito", 
-    "📊 2. Calificación del Top 3 de Ofertas", 
-    "🧮 3. Simuladores, CDP & Amortización",
-    "📈 4. Valuation & Tax Hub (NIIF / LRTI)",
-    "🌐 5. Ecosistema CRESA & Validadores"
+tab_solicitud, tab_crm, tab_calificacion, tab_simuladores, tab_valuacion, tab_cresa = str_app.tabs([
+    "📝 1. Fábrica de Crédito & Despacho", 
+    "📈 2. CRM, Trazabilidad & KPIs", 
+    "📊 3. Calificación del Top 3 de Ofertas", 
+    "🧮 4. Simuladores, CDP & Amortización",
+    "🌐 5. Ecosistema CRESA & Tiendas Virtuales"
 ])
 
 # ------------------------------------------------------------------------------
-# PESTAÑA 1: CAPTURA & SOLICITUD DE CRÉDITO
+# PESTAÑA 1: FÁBRICA DE CRÉDITO Y DESPACHO AUTOMÁTICO
 # ------------------------------------------------------------------------------
 with tab_solicitud:
     str_app.markdown("""
     <div class="card-corporativa" style="border-top: 5px solid #10B981;">
-        <h3>📋 Registro de Solicitud y Empaquetamiento de Expediente</h3>
-        <p style='color: #4A5568;'>Completa los datos del cliente. La plataforma generará automáticamente la solicitud en el formato oficial de Excel, compilará el resumen en PDF y despachará el expediente por correo a los bancos seleccionados.</p>
+        <h3>📋 Fábrica de Crédito: Captura y Despacho Dinámico</h3>
+        <p style='color: #4A5568;'>Ingresa la información del cliente. El sistema tomará automáticamente los correos actualizados desde tu plantilla en Google Sheets, despachará el paquete de crédito por email y abrirá el ticket en el CRM.</p>
     </div>
     """, unsafe_allow_html=True)
     
-    with str_app.expander("📥 Descargar Plantilla Oficial Excel Vacía", expanded=False):
-        try:
-            p_bytes = cargar_plantilla_excel_bytes()
-            str_app.download_button(
-                label="Descargar Plantilla Excel 'Solicitud de Crédito ESCALA CONSULTORES.xlsx'",
-                data=p_bytes,
-                file_name="Solicitud_Credito_ESCALA_CONSULTORES_Vacia.xlsx",
-                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-            )
-        except Exception:
-            str_app.warning("Coloca el archivo 'Solicitud de Crédito ESCALA CONSULTORES.xlsx' en la carpeta raíz del proyecto.")
-
-    with str_app.form("form_solicitud_completa", clear_on_submit=False):
+    # Cargar entidades dinámicas de Google Sheets
+    entidades_dinamicas = obtener_entidades_financieras_dinamicas()
+    
+    with str_app.form("form_solicitud_fabrica", clear_on_submit=False):
         str_app.subheader("1. Datos Generales de la Operación")
         c1, c2, c3, c4 = str_app.columns(4)
         monto_sol = c1.number_input("Monto Requerido ($):", min_value=300.0, value=5000.0, step=250.0)
@@ -414,7 +470,7 @@ with tab_solicitud:
         dia_pago_sol = c3.selectbox("Día Preferido de Pago:", list(range(1, 31)), index=4)
         tipo_sujeto = c4.selectbox("Tipo de Sujeto:", ["Persona Natural", "Persona Jurídica"])
         
-        str_app.subheader("2. Clasificación del Crédito")
+        str_app.subheader("2. Clasificación Técnica del Crédito")
         col_t, col_d = str_app.columns(2)
         tipo_cred_sel = col_t.selectbox("Tipo de Crédito:", options=list(CATALOGO_CREDITO.keys()))
         destino_cred_sel = col_d.selectbox("Destino del Crédito:", options=CATALOGO_CREDITO[tipo_cred_sel])
@@ -446,19 +502,20 @@ with tab_solicitud:
         doc_ingresos = f2.file_uploader("📦 Sustento de Ingresos", type=["pdf", "png", "jpg", "jpeg"])
         doc_planilla = f3.file_uploader("🏠 Planilla de Servicio Básico", type=["pdf", "png", "jpg", "jpeg"])
         
-        str_app.subheader("6. Selección de Entidades Financieras Destinatarias")
+        str_app.subheader("6. Selección de Entidades Financieras (Leídas desde Google Sheets)")
         bancos_sel = str_app.multiselect(
-            "Selecciona las entidades a las que deseas remitir el expediente:",
-            options=[b["nombre"] for b in ENTIDADES_DESTINO],
-            default=[b["nombre"] for b in ENTIDADES_DESTINO[:3]]
+            "Selecciona las instituciones a las que enviarás la solicitud:",
+            options=[e["entidad"] for e in entidades_dinamicas],
+            default=[e["entidad"] for e in entidades_dinamicas[:2]]
         )
         
-        btn_enviar_expediente = str_app.form_submit_button("🚀 Generar Expediente y Enviar a Instituciones Financieras")
+        btn_enviar_fabrica = str_app.form_submit_button("🚀 Despachar Correo Automático y Crear Lead en CRM")
 
-    if btn_enviar_expediente:
+    if btn_enviar_fabrica:
         if not nombres or not cedula or not doc_cedula:
-            str_app.error("⚠️ Nombres, Cédula y la Carga de la Cédula son obligatorios.")
+            str_app.error("⚠️ Nombres, Cédula y la Carga de Cédula son obligatorios.")
         else:
+            ticket_base = f"TK-{datetime.now().strftime('%Y%m%d-%H%M')}"
             datos_sol = {
                 "nombre": f"{nombres} {ap_paterno} {ap_materno}".strip(),
                 "apellido_paterno": ap_paterno, "apellido_materno": ap_materno, "nombres": nombres,
@@ -469,49 +526,96 @@ with tab_solicitud:
             }
             
             excel_bytes = prellenar_excel_solicitud(datos_sol)
-            pdf_bytes = generar_pdf_solicitud(datos_sol)
             adjuntos = [doc_cedula, doc_ingresos, doc_planilla]
-            correos = [b["email"] for b in ENTIDADES_DESTINO if b["nombre"] in bancos_sel]
             
-            exito, msg_e = enviar_expediente_por_correo(datos_sol, pdf_bytes, excel_bytes, adjuntos, correos)
+            despachados = 0
+            for b_nombre in bancos_sel:
+                ent_info = next((e for e in entidades_dinamicas if e["entidad"] == b_nombre), None)
+                if ent_info:
+                    ticket_id = f"{ticket_base}-{b_nombre.replace(' ', '')[:4].upper()}"
+                    pdf_bytes = generar_pdf_solicitud(datos_sol, ticket_id)
+                    
+                    # 1. Enviar Correo
+                    enviar_correo_fabrica_credito(datos_sol, ticket_id, ent_info, pdf_bytes, excel_bytes, adjuntos)
+                    
+                    # 2. Crear Ticket en CRM
+                    guardar_oportunidad_crm(ticket_id, datos_sol["nombre"], cedula, tipo_cred_sel, destino_cred_sel, monto_sol, plazo_sol, b_nombre, ent_info["email"])
+                    despachados += 1
             
-            guardar_lead(datos_sol["nombre"], cedula, telefono, ciudad, f"Crédito {tipo_cred_sel}")
+            guardar_lead(datos_sol["nombre"], cedula, telefono, ciudad, f"Fábr. Crédito {tipo_cred_sel}")
             
-            str_app.success(f"🎉 ¡Expediente completo generado y enviado a {len(bancos_sel)} entidades!")
-            
-            c_down1, c_down2 = str_app.columns(2)
-            c_down1.download_button(
-                label="📥 Descargar Solicitud Rellenada en Excel (.xlsx)",
-                data=excel_bytes,
-                file_name=f"Solicitud_Escala_{cedula}.xlsx",
-                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                use_container_width=True
-            )
-            c_down2.download_button(
-                label="📥 Descargar Resumen de Solicitud en PDF",
-                data=pdf_bytes,
-                file_name=f"Resumen_Solicitud_{cedula}.pdf",
-                mime="application/pdf",
-                use_container_width=True
-            )
+            str_app.success(f"🎉 ¡Despacho exitoso! Se enviaron {despachados} correos y se crearon sus tarjetas en el CRM.")
 
 # ------------------------------------------------------------------------------
-# PESTAÑA 2: CALIFICACIÓN DEL TOP 3 DE OFERTAS & ADJUDICACIÓN
+# PESTAÑA 2: CRM, TRAZABILIDAD & KPIS DE RENDIMIENTO
+# ------------------------------------------------------------------------------
+with tab_crm:
+    str_app.markdown("""
+    <div class="card-corporativa" style="border-top: 5px solid #0A2540;">
+        <h3>📈 Panel CRM: Embudo de Estados y Trazabilidad</h3>
+        <p style='color: #4A5568;'>Monitorea en tiempo real el estado de cada solicitud enviada a los bancos, actualiza dictámenes y analiza métricas clave de desempeño (KPIs).</p>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    df_crm = leer_oportunidades_crm()
+    
+    if not df_crm.empty:
+        # MÉTRICAS Y KPIS GENERALES
+        kpi1, kpi2, kpi3, kpi4 = str_app.columns(4)
+        tot_ops = len(df_crm)
+        aprobadas_ops = len(df_crm[df_crm["estado"] == "Aprobado"])
+        tasa_aprob = (aprobadas_ops / tot_ops) * 100 if tot_ops > 0 else 0
+        vol_financiad = df_crm[df_crm["estado"] == "Aprobado"]["monto_aprobado"].sum()
+        tiempo_prom = df_crm[df_crm["horas_respuesta"] > 0]["horas_respuesta"].mean()
+        tiempo_prom_str = f"{tiempo_prom:.1f} hrs" if pd.notna(tiempo_prom) else "0.0 hrs"
+        
+        kpi1.metric("Total Operaciones", tot_ops)
+        kpi2.metric("Tasa de Aprobación", f"{tasa_aprob:.1f}%")
+        kpi3.metric("Volumen Financiado", f"${vol_financiad:,.2f}")
+        kpi4.metric("Tiempo Promedio Respuesta", tiempo_prom_str)
+        
+        str_app.markdown("---")
+        
+        # TABLA DE SEGUIMIENTO Y CAMBIO DE ESTADO
+        col_c1, col_c2 = str_app.columns([1.5, 1])
+        
+        with col_c1:
+            str_app.subheader("📋 Registro Histórico de Solicitudes (Pipeline)")
+            str_app.dataframe(df_crm[['ticket_id', 'nombre_cliente', 'entidad_financiera', 'tipo_credito', 'monto', 'estado', 'horas_respuesta']], use_container_width=True)
+            
+        with col_c2:
+            str_app.subheader("⚙️ Actualizar Estado de Ticket")
+            with str_app.form("form_actualizar_crm"):
+                ticket_sel = str_app.selectbox("Selecciona Ticket ID:", options=df_crm['ticket_id'].tolist())
+                nuevo_est = str_app.selectbox("Nuevo Estado:", ["Enviado a Evaluación", "En Análisis", "Requerimiento de Documentos", "Aprobado", "Rechazado"])
+                monto_aprob_input = str_app.number_input("Monto Aprobado ($) (Si aplica):", min_value=0.0, value=0.0, step=250.0)
+                
+                btn_up_crm = str_app.form_submit_button("🔄 Actualizar Estado en CRM")
+                
+            if btn_up_crm:
+                actualizar_estado_crm(ticket_sel, nuevo_est, monto_aprob_input)
+                str_app.success(f"Ticket {ticket_sel} actualizado a '{nuevo_est}'.")
+                str_app.rerun()
+    else:
+        str_app.info("No hay solicitudes registradas en el CRM todavía. Realiza un envío desde la Fábrica de Crédito.")
+
+# ------------------------------------------------------------------------------
+# PESTAÑA 3: CALIFICACIÓN DEL TOP 3 DE OFERTAS & ADJUDICACIÓN
 # ------------------------------------------------------------------------------
 with tab_calificacion:
     str_app.markdown("""
-    <div class="card-corporativa" style="border-top: 5px solid #0A2540;">
-        <h3>📥 Ingreso de Respuestas y Calificación del Top 3 de Ofertas</h3>
-        <p style='color: #4A5568;'>Registra los dictámenes recibidos por correo de los bancos. El sistema calificará y ordenará las 3 mejores opciones para adjudicar el crédito con tu cliente.</p>
+    <div class="card-corporativa">
+        <h3>📥 Calificación y Selección de las 3 Mejores Ofertas</h3>
+        <p style='color: #4A5568;'>Registra los dictámenes finales recibidos. La plataforma determinará el Top 3 para la adjudicación directa con tu cliente.</p>
     </div>
     """, unsafe_allow_html=True)
     
     col_r1, col_r2 = str_app.columns([1, 1.4])
     
     with col_r1:
-        str_app.subheader("Registrar Dictamen de Banco")
+        str_app.subheader("Registrar Dictamen Manual")
         with str_app.form("form_reg_respuesta", clear_on_submit=True):
-            entidad_resp = str_app.selectbox("Entidad Financiera:", [b["nombre"] for b in ENTIDADES_DESTINO])
+            entidad_resp = str_app.selectbox("Entidad Financiera:", [e["entidad"] for e in entidades_dinamicas])
             estado_resp = str_app.selectbox("Dictamen:", ["APROBADO", "RECHAZADO", "CONDICIONADO"])
             monto_aprob = str_app.number_input("Monto Aprobado ($):", min_value=0.0, value=5000.0, step=250.0)
             tasa_tea = str_app.number_input("Tasa de Interés Efectiva (TEA %):", min_value=0.1, value=15.5, step=0.1)
@@ -528,7 +632,7 @@ with tab_calificacion:
             str_app.success(f"Oferta de {entidad_resp} ingresada correctamente.")
 
     with col_r2:
-        str_app.subheader("🏆 Cuadro Comparativo y Selección de Adjudicación")
+        str_app.subheader("🏆 Cuadro Comparativo y Adjudicación")
         if str_app.session_state.respuestas_bancos_manual:
             df_resp = pd.DataFrame(str_app.session_state.respuestas_bancos_manual)
             aprobadas = df_resp[df_resp["Estado"] == "APROBADO"].copy()
@@ -545,19 +649,18 @@ with tab_calificacion:
                 monto_ganador = mejor_o['Monto Aprobado']
                 tasa_ganadora = mejor_o['Tasa (TEA %)']
                 
-                # Corrección de sintaxis de f-string en linea 555
                 str_app.success(f"🥇 **Opción Prioritaria Adjudicada:** {entidad_ganadora} por **${monto_ganador:,.2f}** al **{tasa_ganadora}% TEA**.")
                 
-                msg_ws = f"Hola, he revisado el Top 3 de ofertas para mi crédito. La opción ganadora adjudicada es {entidad_ganadora} por ${monto_ganador:,.2f} al {tasa_ganadora}% TEA. Deseo continuar con el desembolso."
+                msg_ws = f"Hola, he revisado el Top 3 de ofertas para mi crédito. La opción ganadora es {entidad_ganadora} por ${monto_ganador:,.2f} al {tasa_ganadora}% TEA. Deseo continuar con el desembolso."
                 url_ws = f"https://api.whatsapp.com/send?phone={NUMERO_WHATSAPP}&text={urllib.parse.quote(msg_ws)}"
-                str_app.link_button("🟢 Continuar Desembolso de Oferta Adjudicada vía WhatsApp", url_ws, type="primary")
+                str_app.link_button("🟢 Continuar Desembolso vía WhatsApp", url_ws, type="primary")
             else:
                 str_app.warning("Todas las ofertas ingresadas actualmente están rechazadas o condicionadas.")
         else:
-            str_app.info("Registra las respuestas recibidas en el panel de la izquierda para generar la calificación.")
+            str_app.info("Registra las respuestas en el panel izquierdo para generar la calificación.")
 
 # ------------------------------------------------------------------------------
-# PESTAÑA 3: SIMULADORES, CDP & AMORTIZACIÓN
+# PESTAÑA 4: SIMULADORES, CDP & AMORTIZACIÓN
 # ------------------------------------------------------------------------------
 with tab_simuladores:
     s_tab1, s_tab2, s_tab3 = str_app.tabs(["🧮 CDP & Scoring", "📋 Amortización Francesa", "🎯 Planificador de Retiro"])
@@ -614,7 +717,7 @@ with tab_simuladores:
         str_app.markdown(f"Fondo de Retiro Requerido al 5% de rendimiento: **${cap_obj:,.2f}**")
 
 # ------------------------------------------------------------------------------
-# PESTAÑA 4: VALUATION & TAX HUB (NIIF / LRTI)
+# PESTAÑA 5: VALUATION & TAX HUB (NIIF / LRTI)
 # ------------------------------------------------------------------------------
 with tab_valuacion:
     v1, v2, v3, v4 = str_app.tabs(["1. Activos NIIF 13", "2. DCF & WACC", "3. NIC 12 & LRTI", "4. Reporte"])
@@ -678,16 +781,48 @@ with tab_valuacion:
         str_app.metric("Valor Total Combinado", f"${str_app.session_state.enterprise_value + tot_act:,.2f}")
 
 # ------------------------------------------------------------------------------
-# PESTAÑA 5: ECOSISTEMA CRESA & VALIDACIONALES
+# PESTAÑA 6: ECOSISTEMA CRESA & SALAS DE EXPERIENCIA (TIENDAS VIRTUALES)
 # ------------------------------------------------------------------------------
 with tab_cresa:
     str_app.markdown("""
     <div class="card-corporativa">
-        <h3>🌐 Ecosistema CRESA & Canales Comerciales</h3>
-        <p style='color: #4A5568;'>Plataformas de consulta institucional, verificación de identidad y redes de Social Selling.</p>
+        <h3>🌐 Ecosistema CRESA & Salas de Experiencia Virtuales</h3>
+        <p style='color: #4A5568;'>Acceso directo a las tiendas online comerciales y plataformas de validación institucional.</p>
     </div>
     """, unsafe_allow_html=True)
     
+    str_app.markdown("### 🛍️ Salas de Experiencia y Tiendas Virtuales Aliadas")
+    sc1, sc2, sc3 = str_app.columns(3)
+    
+    with sc1:
+        str_app.markdown("""
+        <div class="tienda-card">
+            <h4>💳 Créditos Económicos</h4>
+            <p style="font-size:0.85rem; color:#4A5568;">Electrodomésticos, tecnología y consumo masivo.</p>
+        </div>
+        """, unsafe_allow_html=True)
+        str_app.link_button("🌐 Visitar Créditos Económicos", "https://www.creditoseconomicos.com", use_container_width=True)
+
+    with sc2:
+        str_app.markdown("""
+        <div class="tienda-card">
+            <h4>⚡ Almacenes Japón</h4>
+            <p style="font-size:0.85rem; color:#4A5568;">Tecnología, audio, video y motocicletas.</p>
+        </div>
+        """, unsafe_allow_html=True)
+        str_app.link_button("🌐 Visitar Almacenes Japón", "https://www.almacenesjapon.com", use_container_width=True)
+
+    with sc3:
+        str_app.markdown("""
+        <div class="tienda-card">
+            <h4>🏠 Orve Hogar</h4>
+            <p style="font-size:0.85rem; color:#4A5568;">Muebles, decoración y equipamiento del hogar.</p>
+        </div>
+        """, unsafe_allow_html=True)
+        str_app.link_button("🌐 Visitar Orve Hogar", "https://www.orvehogar.com", use_container_width=True)
+
+    str_app.write("---")
+    str_app.markdown("### 📋 Plataformas de Validación Institucional")
     cb1, cb2 = str_app.columns(2)
     with cb1:
         str_app.link_button("🚀 Plataforma Nexum 360", "https://nexum360.com.ec/", use_container_width=True)
