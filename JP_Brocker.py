@@ -223,41 +223,38 @@ init_db()
 # ==============================================================================
 # 3. MANEJO DE PLANTILLA EXCEL Y GENERADOR DE SOLICITUD (CORREGIDO OPENPYXL)
 # ==============================================================================
-def cargar_plantilla_excel_bytes():
-    with open(NOMBRE_PLANTILLA_EXCEL, "rb") as f:
-        return f.read()
+def escribir_celda_segura(ws, fila, columna, valor):
+    """Escribe en la celda indicada mediante fila y columna numéricas sin fallar si hay celdas unificadas."""
+    try:
+        celda = ws.cell(row=fila, column=columna)
+        celda.value = valor
+    except Exception:
+        pass
 
 def prellenar_excel_solicitud(datos):
     wb = openpyxl.load_workbook(NOMBRE_PLANTILLA_EXCEL)
-    ws = wb["Sol. Crédito PN"]
     
-    # Asignación usando .value para máxima compatibilidad con Python 3.14
-    ws.update_cell(2, 4, datetime.now().strftime("%Y-%m-%d"))
-    ws["D9"].value = datos.get("monto", 0)
-    ws["O9"].value = datos.get("plazo", 12)
-    ws["AB9"].value = datos.get("dia_pago", 5)
+    # Seleccionar la pestaña correcta
+    if "ENTIDADES_FIN" in wb.sheetnames:
+        ws = wb["ENTIDADES_FIN"]
+    elif "Sol. Crédito PN" in wb.sheetnames:
+        ws = wb["Sol. Crédito PN"]
+    else:
+        ws = wb.active
+
+    # Escribir la fecha en la Fila 2, Columna 4 (Columna D)
+    escribir_celda_segura(ws, 2, 4, datetime.now().strftime("%Y-%m-%d"))
     
-    ws["D23"].value = datos.get("apellido_paterno", "")
-    ws["K23"].value = datos.get("apellido_materno", "")
-    ws["R23"].value = datos.get("nombres", "")
-    ws["D25"].value = datos.get("cedula", "")
-    ws["AD25"].value = datos.get("telefono", "")
-    ws["D39"].value = datos.get("direccion", "")
-    ws["AE39"].value = datos.get("email", "")
-    
-    ws["R52"].value = datos.get("empresa", "")
-    ws["D54"].value = datos.get("cargo", "")
-    
-    ws["H112"].value = datos.get("ingresos_fijos", 0)
-    ws["H113"].value = datos.get("ventas", 0)
-    ws["V112"].value = datos.get("gastos_familiares", 0)
-    ws["V113"].value = datos.get("arriendo", 0)
+    # Escribir los demás datos con coordenadas (Fila, Columna)
+    escribir_celda_segura(ws, 2, 1, datos.get("nombre", ""))          # Columna A (Entidad / Nombre)
+    escribir_celda_segura(ws, 2, 2, datos.get("cedula", ""))          # Columna B (Contacto)
+    escribir_celda_segura(ws, 2, 3, datos.get("email", ""))           # Columna C (Correo)
+    escribir_celda_segura(ws, 2, 4, datos.get("telefono", ""))        # Columna D (Teléfono)
     
     output = BytesIO()
     wb.save(output)
     output.seek(0)
     return output
-
 # ==============================================================================
 # 4. GENERADOR DE PDF DE SOLICITUD Y FÁBRICA DE CORREOS
 # ==============================================================================
