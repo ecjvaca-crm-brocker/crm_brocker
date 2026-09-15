@@ -232,7 +232,7 @@ def prellenar_excel_solicitud(datos):
     ws = wb["Sol. Crédito PN"]
     
     # Asignación usando .value para máxima compatibilidad con Python 3.14
-    ws["D6"].value = datetime.now().strftime("%Y-%m-%d")
+    ws.update_cell(2, 4, datetime.now().strftime("%Y-%m-%d"))
     ws["D9"].value = datos.get("monto", 0)
     ws["O9"].value = datos.get("plazo", 12)
     ws["AB9"].value = datos.get("dia_pago", 5)
