@@ -140,11 +140,13 @@ ENTIDADES_DESTINO = [
 
 
 # ==============================================================================
-# 2. CAPA DE PERSISTENCIA (SQLITE CRM LOCAL)
+# 2. CAPA DE PERSISTENCIA Y MIGRACIÓN AUTOMÁTICA (SQLITE CRM)
 # ==============================================================================
 def init_db():
     conn = sqlite3.connect("crm_escala.db")
     cursor = conn.cursor()
+
+    # 1. Crear tabla base si no existe
     cursor.execute(
         """
         CREATE TABLE IF NOT EXISTS solicitudes (
@@ -163,6 +165,24 @@ def init_db():
         )
     """
     )
+
+    # 2. Migración automática: verificar y agregar columnas si la tabla ya existía
+    cursor.execute("PRAGMA table_info(solicitudes)")
+    columnas_existentes = [columna[1] for columna in cursor.fetchall()]
+
+    columnas_requeridas = {
+        "plazo": "INTEGER",
+        "tipo_credito": "TEXT",
+        "destino": "TEXT",
+        "directorio_docs": "TEXT",
+    }
+
+    for col, tipo in columnas_requeridas.items():
+        if col not in columnas_existentes:
+            cursor.execute(
+                f"ALTER TABLE solicitudes ADD COLUMN {col} {tipo}"
+            )
+
     conn.commit()
     conn.close()
 
@@ -184,6 +204,8 @@ def guardar_solicitud_crm(datos_sol, archivos_cargados):
 
     conn = sqlite3.connect("crm_escala.db")
     cursor = conn.cursor()
+
+    # Inserción limpia respetando exactamente las columnas definidas
     cursor.execute(
         """
         INSERT INTO solicitudes 
@@ -192,14 +214,14 @@ def guardar_solicitud_crm(datos_sol, archivos_cargados):
     """,
         (
             datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-            datos_sol.get("nombre"),
-            datos_sol.get("cedula"),
-            datos_sol.get("telefono"),
-            datos_sol.get("email"),
-            datos_sol.get("monto"),
-            datos_sol.get("plazo"),
-            datos_sol.get("tipo_credito"),
-            datos_sol.get("destino_credito"),
+            datos_sol.get("nombre", ""),
+            datos_sol.get("cedula", ""),
+            datos_sol.get("telefono", ""),
+            datos_sol.get("email", ""),
+            float(datos_sol.get("monto", 0.0)),
+            int(datos_sol.get("plazo", 12)),
+            datos_sol.get("tipo_credito", ""),
+            datos_sol.get("destino_credito", ""),
             "En Proceso",
             dir_cliente,
         ),
@@ -208,19 +230,7 @@ def guardar_solicitud_crm(datos_sol, archivos_cargados):
     conn.close()
 
 
-def eliminar_documentos_cliente(dir_cliente):
-    if os.path.exists(dir_cliente):
-        try:
-            shutil.rmtree(dir_cliente)
-            return True
-        except Exception as e:
-            str_app.error(f"Error al eliminar carpeta: {e}")
-            return False
-    return False
-
-
 init_db()
-
 
 # ==============================================================================
 # 3. GENERACIÓN DE EXCEL, PDF Y ENVÍO SMTP CON SECRETS
