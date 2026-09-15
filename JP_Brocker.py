@@ -92,7 +92,6 @@ CATALOGO_CREDITO = {
 def init_db():
     conn = sqlite3.connect("escala_web_leads.db")
     cursor = conn.cursor()
-    # Tabla de Leads Generales
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS web_leads (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -104,7 +103,6 @@ def init_db():
             producto TEXT
         )
     """)
-    # Tabla de Oportunidades CRM (Fabrica de Crédito)
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS crm_oportunidades (
             ticket_id TEXT PRIMARY KEY,
@@ -159,7 +157,6 @@ def actualizar_estado_crm(ticket_id, nuevo_estado, monto_aprobado=0.0):
     conn = sqlite3.connect("escala_web_leads.db")
     cursor = conn.cursor()
     
-    # Calcular tiempo de respuesta
     cursor.execute("SELECT fecha_envio FROM crm_oportunidades WHERE ticket_id = ?", (ticket_id,))
     res = cursor.fetchone()
     horas = 0.0
@@ -193,7 +190,6 @@ def cargar_datos_google_sheet(url_sheet):
     except Exception:
         return pd.DataFrame()
 
-# Cargar proveedores de Google Sheets dinámicamente
 def obtener_entidades_financieras_dinamicas():
     df_prov = cargar_datos_google_sheet(URL_GOOGLE_SHEET_PROVEEDORES)
     if not df_prov.empty:
@@ -434,12 +430,14 @@ str_app.markdown("""
 str_app.markdown("<h1 style='text-align: center; font-size: 2.8rem;'>🏛️ ESCALA Consultoría Financiera y Empresarial</h1>", unsafe_allow_html=True)
 str_app.markdown("<p style='text-align: center; color: #D4AF37; font-size: 1.3rem; font-weight: bold;'>Solución Integral de Intermediación Financiera e Inteligencia Fiscal</p>", unsafe_allow_html=True)
 
+# LÍNEA CORREGIDA: 6 variables coinciden exactamente con las 6 etiquetas de pestañas
 tab_solicitud, tab_crm, tab_calificacion, tab_simuladores, tab_valuacion, tab_cresa = str_app.tabs([
     "📝 1. Fábrica de Crédito & Despacho", 
     "📈 2. CRM, Trazabilidad & KPIs", 
     "📊 3. Calificación del Top 3 de Ofertas", 
     "🧮 4. Simuladores, CDP & Amortización",
-    "🌐 5. Ecosistema CRESA & Tiendas Virtuales"
+    "📈 5. Valuation & Tax Hub",
+    "🌐 6. Ecosistema CRESA & Tiendas Virtuales"
 ])
 
 # ------------------------------------------------------------------------------
