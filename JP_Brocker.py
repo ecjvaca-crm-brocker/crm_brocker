@@ -32,7 +32,7 @@ str_app.set_page_config(
 
 NUMERO_WHATSAPP = "593998076979"
 PASSWORD_DASHBOARD = "Escala2026"
-NOMBRE_PLANTILLA_EXCEL = "Solicitud de Crédito ESCALA CONSULTORES.xlsx"
+NOMBRE_PLANTILLA_EXCEL = "Solicitud de Crédito ESCALA CONSULTORES_2.xlsx"
 DIR_RESPALDOS = "./respaldos_crm"
 
 if not os.path.exists(DIR_RESPALDOS):
@@ -96,7 +96,6 @@ if "tasa_fiscal_ecuador" not in str_app.session_state:
 if "respuestas_bancos_manual" not in str_app.session_state:
     str_app.session_state.respuestas_bancos_manual = []
 
-# CATÁLOGO DE CRÉDITO
 CATALOGO_CREDITO = {
     "Consumo": [
         "Estudios / Capacitación / Maestrías",
@@ -145,8 +144,6 @@ ENTIDADES_DESTINO = [
 def init_db():
     conn = sqlite3.connect("crm_escala.db")
     cursor = conn.cursor()
-
-    # 1. Crear tabla base si no existe
     cursor.execute(
         """
         CREATE TABLE IF NOT EXISTS solicitudes (
@@ -165,24 +162,16 @@ def init_db():
         )
     """
     )
-
-    # 2. Migración automática: verificar y agregar columnas si la tabla ya existía
     cursor.execute("PRAGMA table_info(solicitudes)")
-    columnas_existentes = [columna[1] for columna in cursor.fetchall()]
-
-    columnas_requeridas = {
-        "plazo": "INTEGER",
-        "tipo_credito": "TEXT",
-        "destino": "TEXT",
-        "directorio_docs": "TEXT",
-    }
-
-    for col, tipo in columnas_requeridas.items():
-        if col not in columnas_existentes:
-            cursor.execute(
-                f"ALTER TABLE solicitudes ADD COLUMN {col} {tipo}"
-            )
-
+    cols = [c[1] for c in cursor.fetchall()]
+    for col, tipo in [
+        ("plazo", "INTEGER"),
+        ("tipo_credito", "TEXT"),
+        ("destino", "TEXT"),
+        ("directorio_docs", "TEXT"),
+    ]:
+        if col not in cols:
+            cursor.execute(f"ALTER TABLE solicitudes ADD COLUMN {col} {tipo}")
     conn.commit()
     conn.close()
 
@@ -204,8 +193,6 @@ def guardar_solicitud_crm(datos_sol, archivos_cargados):
 
     conn = sqlite3.connect("crm_escala.db")
     cursor = conn.cursor()
-
-    # Inserción limpia respetando exactamente las columnas definidas
     cursor.execute(
         """
         INSERT INTO solicitudes 
@@ -230,11 +217,36 @@ def guardar_solicitud_crm(datos_sol, archivos_cargados):
     conn.close()
 
 
+def eliminar_documentos_cliente(dir_cliente):
+    if os.path.exists(dir_cliente):
+        try:
+            shutil.rmtree(dir_cliente)
+            return True
+        except Exception as e:
+            str_app.error(f"Error al eliminar carpeta: {e}")
+            return False
+    return False
+
+
 init_db()
 
+
 # ==============================================================================
-# 3. GENERACIÓN DE EXCEL, PDF Y ENVÍO SMTP CON SECRETS
+# 3. MANEJO SEGURO DE PLANTILLA EXCEL Y MAPEO OFICIAL
 # ==============================================================================
+def set_cell_safe(ws, cell_coord, val):
+    """Permite escribir en celdas individuales o unificadas sin errores."""
+    cell = ws[cell_coord]
+    if type(cell).__name__ == "MergedCell":
+        for rng in ws.merged_cells.ranges:
+            if cell_coord in rng:
+                top_left = ws.cell(row=rng.min_row, column=rng.min_col)
+                top_left.value = val
+                return
+    else:
+        cell.value = val
+
+
 def prellenar_excel_solicitud(datos):
     if os.path.exists(NOMBRE_PLANTILLA_EXCEL):
         wb = openpyxl.load_workbook(NOMBRE_PLANTILLA_EXCEL)
@@ -244,26 +256,51 @@ def prellenar_excel_solicitud(datos):
     ws = wb["Sol. Crédito PN"] if "Sol. Crédito PN" in wb.sheetnames else wb.active
 
     try:
-        ws["D6"] = datetime.now().strftime("%Y-%m-%d")
-        ws["D9"] = datos.get("monto", 0)
-        ws["O9"] = datos.get("plazo", 12)
-        ws["AB9"] = datos.get("dia_pago", 5)
+        # Fecha y Condiciones de la Operación
+        set_cell_safe(ws, "G7", datetime.now().strftime("%Y-%m-%d"))
+        set_cell_safe(ws, "G10", float(datos.get("monto", 0)))
+        set_cell_safe(ws, "T10", int(datos.get("plazo", 12)))
+        set_cell_safe(ws, "AI10", int(datos.get("dia_pago", 5)))
+        set_cell_safe(ws, "I17", str(datos.get("destino_credito", "")))
 
-        ws["D23"] = datos.get("apellido_paterno", "")
-        ws["K23"] = datos.get("apellido_materno", "")
-        ws["R23"] = datos.get("nombres", "")
-        ws["D25"] = datos.get("cedula", "")
-        ws["AD25"] = datos.get("telefono", "")
-        ws["D39"] = datos.get("direccion", "")
-        ws["AE39"] = datos.get("email", "")
+        # Datos Personales
+        set_cell_safe(ws, "H24", str(datos.get("apellido_paterno", "")))
+        set_cell_safe(ws, "R24", str(datos.get("apellido_materno", "")))
+        set_cell_safe(ws, "Z24", str(datos.get("nombres", "")))
+        set_cell_safe(ws, "H26", str(datos.get("cedula", "")))
+        set_cell_safe(ws, "R26", str(datos.get("ciudad", "Ibarra")))
+        set_cell_safe(ws, "AE26", "Ecuatoriana")
 
-        ws["R52"] = datos.get("empresa", "")
-        ws["D54"] = datos.get("cargo", "")
+        # Dirección y Contacto
+        set_cell_safe(ws, "F37", str(datos.get("direccion", "")))
+        set_cell_safe(ws, "Q38", str(datos.get("ciudad", "")))
+        set_cell_safe(ws, "AF38", "Centro / Urbano")
+        set_cell_safe(ws, "M40", str(datos.get("telefono", "")))
+        set_cell_safe(ws, "AJ40", str(datos.get("telefono", "")))
+        set_cell_safe(ws, "V40", str(datos.get("email", "")))
 
-        ws["H112"] = datos.get("ingresos_fijos", 0)
-        ws["V112"] = datos.get("gastos_familiares", 0)
-    except Exception:
-        pass
+        # Información Laboral
+        set_cell_safe(ws, "N53", str(datos.get("empresa", "")))
+        set_cell_safe(ws, "AE53", str(datos.get("cargo", "")))
+
+        # Ingresos y Egresos Financieros
+        set_cell_safe(ws, "R113", float(datos.get("ingresos_fijos", 0)))
+        set_cell_safe(ws, "R115", float(datos.get("ingresos_fijos", 0)))
+        set_cell_safe(ws, "AK113", float(datos.get("gastos_familiares", 0)))
+        set_cell_safe(ws, "AK114", 300.0)  # Arriendo estimado
+
+        # Ubicación Google Maps para Croquis
+        mapa_dom = datos.get("mapa_domicilio", "No especificado")
+        mapa_trab = datos.get("mapa_trabajo", "No especificado")
+        set_cell_safe(
+            ws, "C163", f"Ubicación Google Maps Domicilio: {mapa_dom}"
+        )
+        set_cell_safe(
+            ws, "X163", f"Ubicación Google Maps Trabajo: {mapa_trab}"
+        )
+
+    except Exception as e:
+        print(f"Aviso de mapeo Excel: {e}")
 
     output = BytesIO()
     wb.save(output)
@@ -326,6 +363,11 @@ def generar_pdf_solicitud(datos):
         ("Destino del Crédito:", datos["destino_credito"]),
         ("Monto Solicitado:", f"${datos['monto']:,.2f}"),
         ("Plazo Solicitado:", f"{datos['plazo']} Meses"),
+        (
+            "Ubicación Google Maps Domicilio:",
+            datos.get("mapa_domicilio", "N/A"),
+        ),
+        ("Ubicación Google Maps Trabajo:", datos.get("mapa_trabajo", "N/A")),
         ("Fecha de Emisión:", datetime.now().strftime("%Y-%m-%d %H:%M")),
     ]
 
@@ -340,7 +382,7 @@ def generar_pdf_solicitud(datos):
     pdf.multi_cell(
         0,
         4.5,
-        "Aviso Legal: El presente documento constituye únicamente un formato para recoger información necesaria para una solicitud de crédito. Las operaciones aprobadas serán regularizadas formalmente por la entidad financiera que adjudique la operación.",
+        "Aviso Legal: El presente documento recopila la información necesaria para el trámite de crédito. Las operaciones aprobadas serán regularizadas formalmente por la entidad financiera asignada.",
     )
 
     return BytesIO(pdf.output(dest="S"))
@@ -357,7 +399,7 @@ def enviar_expediente_por_correo(
 
         msg = MIMEMultipart()
         msg["From"] = sender_email
-        msg["To"] = sender_email  # Envío principal al broker
+        msg["To"] = sender_email
         msg["Subject"] = (
             f"EXPEDIENTE DE CRÉDITO: {datos_solicitud['nombre']} - {datos_solicitud['tipo_credito']}"
         )
@@ -372,15 +414,16 @@ def enviar_expediente_por_correo(
         • Destino: {datos_solicitud['destino_credito']}
         • Monto Solicitado: ${datos_solicitud['monto']:,.2f}
         • Plazo: {datos_solicitud['plazo']} meses
+        • Ubicación Domicilio (Maps): {datos_solicitud.get('mapa_domicilio')}
+        • Ubicación Trabajo (Maps): {datos_solicitud.get('mapa_trabajo')}
         
-        Se adjuntan el resumen en PDF, el formulario Excel oficial y los documentos soporte del cliente.
+        Se adjuntan el formulario Excel oficial prellenado, el resumen en PDF y los documentos soporte.
         
         Atentamente,
         Escala Consultoría Empresarial y Financiera
         """
         msg.attach(MIMEText(body, "plain"))
 
-        # Adjunto PDF
         p_pdf = MIMEBase("application", "octet-stream")
         p_pdf.set_payload(pdf_bytes.getvalue())
         encoders.encode_base64(p_pdf)
@@ -390,7 +433,6 @@ def enviar_expediente_por_correo(
         )
         msg.attach(p_pdf)
 
-        # Adjunto Excel
         p_xls = MIMEBase("application", "octet-stream")
         p_xls.set_payload(excel_bytes.getvalue())
         encoders.encode_base64(p_xls)
@@ -400,7 +442,6 @@ def enviar_expediente_por_correo(
         )
         msg.attach(p_xls)
 
-        # Adjuntos cargados
         if archivos_adjuntos:
             for adj in archivos_adjuntos:
                 if adj is not None:
@@ -425,7 +466,7 @@ def enviar_expediente_por_correo(
 
 
 # ==============================================================================
-# 4. CABECERA NAVEGABLE Y PESTAÑAS PRINCIPALES
+# 4. INTERFAZ Y NAVEGACIÓN EN PESTAÑAS
 # ==============================================================================
 str_app.markdown(
     "<h1 style='text-align: center; font-size: 2.6rem;'>🏛️ Escala Corporate: Brokerage & Valuation Hub</h1>",
@@ -451,14 +492,14 @@ tab_solicitud, tab_crm, tab_calificacion, tab_simuladores, tab_valuacion, tab_cr
 )
 
 # ------------------------------------------------------------------------------
-# PESTAÑA 1: CAPTURA & SOLICITUD DE CRÉDITO
+# PESTAÑA 1: CAPTURA & SOLICITUD DE CRÉDITO CON GOOGLE MAPS
 # ------------------------------------------------------------------------------
 with tab_solicitud:
     str_app.markdown(
         """
     <div class="card-corporativa" style="border-top: 5px solid #10B981;">
-        <h3>📋 Registro de Solicitud y Empaquetamiento de Expediente</h3>
-        <p style='color: #4A5568;'>Completa los datos del cliente. La plataforma generará automáticamente la solicitud en el formato oficial de Excel, compilará el resumen en PDF y despachará el expediente por correo.</p>
+        <h3>📋 Registro de Solicitud, Croquis Digital y Expediente Oficial</h3>
+        <p style='color: #4A5568;'>Completa los datos del cliente. El sistema prellenará automáticamente el formulario oficial Excel con todas las casillas correspondientes y despachará el expediente por correo.</p>
     </div>
     """,
         unsafe_allow_html=True,
@@ -480,13 +521,13 @@ with tab_solicitud:
             "Tipo de Sujeto:", ["Persona Natural", "Persona Jurídica"]
         )
 
-        str_app.subheader("2. Clasificación del Crédito")
+        str_app.subheader("2. Clasificación y Destino del Crédito")
         col_t, col_d = str_app.columns(2)
         tipo_cred_sel = col_t.selectbox(
             "Tipo de Crédito:", options=list(CATALOGO_CREDITO.keys())
         )
         destino_cred_sel = col_d.selectbox(
-            "Destino del Crédito:", options=CATALOGO_CREDITO[tipo_cred_sel]
+            "Destino Específico:", options=CATALOGO_CREDITO[tipo_cred_sel]
         )
 
         str_app.subheader("3. Identificación del Solicitante")
@@ -503,11 +544,26 @@ with tab_solicitud:
 
         direccion = str_app.text_input("Dirección Domiciliaria Completa:")
 
-        str_app.subheader("4. Información Laboral y Financiera Básica")
+        str_app.subheader(
+            "📍 Enlaces de Ubicación Geográfica (Croquis Digital)"
+        )
+        m1, m2 = str_app.columns(2)
+        mapa_domicilio = m1.text_input(
+            "Enlace Google Maps (Domicilio):",
+            placeholder="Ej. https://maps.app.goo.gl/... o Coordenadas",
+        )
+        mapa_trabajo = m2.text_input(
+            "Enlace Google Maps (Lugar de Trabajo):",
+            placeholder="Ej. https://maps.app.goo.gl/... o Coordenadas",
+        )
+
+        str_app.subheader("4. Información Laboral y Financiera")
         l1, l2, l3, l4 = str_app.columns(4)
         empresa = l1.text_input("Empresa / Negocio:")
         cargo = l2.text_input("Cargo / Actividad:")
-        ing_fijos = l3.number_input("Ingresos Fijos / Ventas ($):", value=1200.0)
+        ing_fijos = l3.number_input(
+            "Ingresos Fijos / Ventas Mensuales ($):", value=1200.0
+        )
         gastos_fam = l4.number_input(
             "Gastos Familiares / Arriendo ($):", value=500.0
         )
@@ -521,7 +577,7 @@ with tab_solicitud:
             "📦 Sustento de Ingresos", type=["pdf", "png", "jpg", "jpeg"]
         )
         doc_planilla = f3.file_uploader(
-            "🏠 Planilla de Servicio Básico", type=["pdf", "png", "jpg", "jpeg"]
+            "🏠 Planilla Básica", type=["pdf", "png", "jpg", "jpeg"]
         )
 
         bancos_sel = str_app.multiselect(
@@ -531,7 +587,7 @@ with tab_solicitud:
         )
 
         btn_enviar_expediente = str_app.form_submit_button(
-            "🚀 Generar Expediente y Procesar Solicitud"
+            "🚀 Generar Expediente y Enviar Solicitud Oficial"
         )
 
     if btn_enviar_expediente:
@@ -557,6 +613,8 @@ with tab_solicitud:
                 "cargo": cargo,
                 "ingresos_fijos": ing_fijos,
                 "gastos_familiares": gastos_fam,
+                "mapa_domicilio": mapa_domicilio,
+                "mapa_trabajo": mapa_trabajo,
             }
 
             excel_bytes = prellenar_excel_solicitud(datos_sol)
@@ -575,18 +633,18 @@ with tab_solicitud:
 
             if exito:
                 str_app.success(
-                    f"🎉 ¡Expediente completo registrado en CRM y enviado vía SMTP!"
+                    "🎉 ¡Expediente oficial prellenado, registrado en CRM y enviado vía SMTP con éxito!"
                 )
             else:
                 str_app.warning(
-                    f"⚠️ Expediente guardado en CRM pero falló el envío SMTP: {msg_e}"
+                    f"⚠️ Expediente guardado en CRM pero hubo un problema al enviar correo: {msg_e}"
                 )
 
 # ------------------------------------------------------------------------------
 # PESTAÑA 2: PIPELINE CRM Y EXPEDIENTES
 # ------------------------------------------------------------------------------
 with tab_crm:
-    str_app.subheader("📊 Pipeline CRM de Solicitudes")
+    str_app.subheader("📊 Pipeline CRM de Solicitudes y Expedientes")
 
     conn = sqlite3.connect("crm_escala.db")
     df_solicitudes = pd.read_sql_query(
@@ -608,7 +666,7 @@ with tab_crm:
                 )
 
                 dir_docs = row["directorio_docs"]
-                str_app.subheader("📁 Archivos de Respaldo")
+                str_app.subheader("📁 Archivos de Respaldo y Formulario")
                 if dir_docs and os.path.exists(dir_docs):
                     archivos = os.listdir(dir_docs)
                     if archivos:
