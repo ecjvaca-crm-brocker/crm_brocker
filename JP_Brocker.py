@@ -30,7 +30,7 @@ EMAIL_EMISOR = "consultoria@escalafinance.com.ec"
 PASSWORD_EMAIL = "tu_password_o_app_token"
 
 str_app.set_page_config(
-    page_title="Escala Consultoria Fnanciera ", 
+    page_title="ESCALA Consultoría Financiera y Empresarial", 
     page_icon="🏛️", 
     layout="wide"
 )
@@ -197,7 +197,6 @@ def cargar_datos_google_sheet(url_sheet):
 def obtener_entidades_financieras_dinamicas():
     df_prov = cargar_datos_google_sheet(URL_GOOGLE_SHEET_PROVEEDORES)
     if not df_prov.empty:
-        # Renombrar/Normalizar columnas
         df_prov.columns = [str(c).strip().upper() for c in df_prov.columns]
         col_entidad = [c for c in df_prov.columns if "ENTIDAD" in c or "BANCO" in c or "INSTITUCION" in c]
         col_contacto = [c for c in df_prov.columns if "CONTACTO" in c or "NOMBRE" in c]
@@ -213,7 +212,6 @@ def obtener_entidades_financieras_dinamicas():
         if entidades:
             return entidades
 
-    # Entidades fallback por defecto si falla la lectura remota
     return [
         {"entidad": "Banco Guayaquil", "contacto": "Lcdo. Roberto Gómez", "email": "creditos_pymes@bancoguayaquil.com"},
         {"entidad": "Banco Pichincha", "contacto": "Ing. Sofía Morales", "email": "evaluacion_riesgos@pichincha.com"},
@@ -318,7 +316,6 @@ def enviar_correo_fabrica_credito(datos_solicitud, ticket_id, entidad_info, pdf_
         msg['To'] = entidad_info["email"]
         msg['Subject'] = f"Solicitud de Crédito - {datos_solicitud['nombre']} - {datos_solicitud['tipo_credito']} - {ticket_id}"
         
-        # Estructura del cuerpo solicitada
         body = f"""Apreciado(a) {entidad_info['contacto']} ({entidad_info['entidad']}),
 
 Por esta vía adjuntamos los documentos habilitantes para la calificación de crédito:
@@ -332,26 +329,23 @@ Destino del Crédito: {datos_solicitud['destino_credito']}
 Quedamos atentos a la evaluación y resolución de esta operación.
 
 Atentamente,
-Escala Consultoría Empresarial y Financiera
+ESCALA Consultoría Financiera y Empresarial
 Ticket ID: {ticket_id}
 """
         msg.attach(MIMEText(body, 'plain'))
         
-        # Adjuntar PDF
         p_pdf = MIMEBase('application', 'octet-stream')
         p_pdf.set_payload(pdf_bytes.getvalue())
         encoders.encode_base64(p_pdf)
         p_pdf.add_header('Content-Disposition', f'attachment; filename="Resumen_Solicitud_{ticket_id}.pdf"')
         msg.attach(p_pdf)
         
-        # Adjuntar Excel
         p_xls = MIMEBase('application', 'octet-stream')
         p_xls.set_payload(excel_bytes.getvalue())
         encoders.encode_base64(p_xls)
         p_xls.add_header('Content-Disposition', f'attachment; filename="Solicitud_Oficial_Escala_{ticket_id}.xlsx"')
         msg.attach(p_xls)
         
-        # Adjuntar documentos escaneados
         for adj in archivos_adjuntos:
             if adj is not None:
                 p_file = MIMEBase('application', 'octet-stream')
@@ -384,7 +378,7 @@ class PDFConsultoria(FPDF):
         self.set_y(-15)
         self.set_font("helvetica", "I", 8)
         self.set_text_color(150, 150, 150)
-        self.cell(0, 10, f"Pagina {self.page_no()}/{{nb}} | Uso Exclusivo - Escala Consultoría Empresarial", 0, 0, "C")
+        self.cell(0, 10, f"Pagina {self.page_no()}/{{nb}} | Uso Exclusivo - ESCALA Consultoría Financiera y Empresarial", 0, 0, "C")
 
 def generar_grafico_radar():
     labels = ['Comercial', 'Financiero', 'Operativo', 'Legal & Gov']
@@ -437,7 +431,7 @@ str_app.markdown("""
 # ==============================================================================
 # 6. CABECERA PRINCIPAL Y PESTAÑAS DE NAVEGACIÓN
 # ==============================================================================
-str_app.markdown("<h1 style='text-align: center; font-size: 2.8rem;'>🏛️ Escala Consultoria Financiera </h1>", unsafe_allow_html=True)
+str_app.markdown("<h1 style='text-align: center; font-size: 2.8rem;'>🏛️ ESCALA Consultoría Financiera y Empresarial</h1>", unsafe_allow_html=True)
 str_app.markdown("<p style='text-align: center; color: #D4AF37; font-size: 1.3rem; font-weight: bold;'>Solución Integral de Intermediación Financiera e Inteligencia Fiscal</p>", unsafe_allow_html=True)
 
 tab_solicitud, tab_crm, tab_calificacion, tab_simuladores, tab_valuacion, tab_cresa = str_app.tabs([
@@ -459,7 +453,6 @@ with tab_solicitud:
     </div>
     """, unsafe_allow_html=True)
     
-    # Cargar entidades dinámicas de Google Sheets
     entidades_dinamicas = obtener_entidades_financieras_dinamicas()
     
     with str_app.form("form_solicitud_fabrica", clear_on_submit=False):
@@ -535,10 +528,7 @@ with tab_solicitud:
                     ticket_id = f"{ticket_base}-{b_nombre.replace(' ', '')[:4].upper()}"
                     pdf_bytes = generar_pdf_solicitud(datos_sol, ticket_id)
                     
-                    # 1. Enviar Correo
                     enviar_correo_fabrica_credito(datos_sol, ticket_id, ent_info, pdf_bytes, excel_bytes, adjuntos)
-                    
-                    # 2. Crear Ticket en CRM
                     guardar_oportunidad_crm(ticket_id, datos_sol["nombre"], cedula, tipo_cred_sel, destino_cred_sel, monto_sol, plazo_sol, b_nombre, ent_info["email"])
                     despachados += 1
             
@@ -560,7 +550,6 @@ with tab_crm:
     df_crm = leer_oportunidades_crm()
     
     if not df_crm.empty:
-        # MÉTRICAS Y KPIS GENERALES
         kpi1, kpi2, kpi3, kpi4 = str_app.columns(4)
         tot_ops = len(df_crm)
         aprobadas_ops = len(df_crm[df_crm["estado"] == "Aprobado"])
@@ -576,7 +565,6 @@ with tab_crm:
         
         str_app.markdown("---")
         
-        # TABLA DE SEGUIMIENTO Y CAMBIO DE ESTADO
         col_c1, col_c2 = str_app.columns([1.5, 1])
         
         with col_c1:
