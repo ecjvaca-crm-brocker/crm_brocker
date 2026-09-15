@@ -39,7 +39,7 @@ URL_FOTO_ASESOR = "https://raw.githubusercontent.com/ecjvaca-crm-brocker/crm_bro
 URL_GOOGLE_SHEET_LEADS = "https://docs.google.com/spreadsheets/d/1DiKGC8Q65SjouMutswiF00hsdbAXTIV5yDlGXGEAZnU/edit?gid=1469424641#gid=1469424641"
 
 # Hoja de Cálculo Dinámica de Proveedores / Entidades Financieras
-URL_GOOGLE_SHEET_PROVEEDORES = "https://docs.google.com/spreadsheets/d/1RotVZVEMjeeDtYq6zNvZR0esQ8Ap1-BAC1JYvKssqUY/edit?gid=0#gid=0"
+URL_GOOGLE_SHEET_PROVEEDORES = "https://docs.google.com/spreadsheets/d/1RotVZVEMjeeDtYq6zNvZR0esQ8Ap1-BAC1JYvKssqUY/gviz/tq?tqx=out:csv&gid=0"
 NOMBRE_PLANTILLA_EXCEL = "Solicitud de Crédito ESCALA CONSULTORES.xlsx"
 
 # Inicialización de Estados Globales
@@ -182,7 +182,10 @@ def leer_leads():
 
 def cargar_datos_google_sheet(url_sheet):
     try:
-        csv_url = url_sheet.split("/edit")[0] + "/export?format=csv" if "edit" in url_sheet else url_sheet
+        if "/edit" in url_sheet:
+            csv_url = url_sheet.split("/edit")[0] + "/gviz/tq?tqx=out:csv"
+        else:
+            csv_url = url_sheet
         df = pd.read_csv(csv_url)
         if "<html" in str(df.iloc[0, 0]).lower():
             return pd.DataFrame()
@@ -194,17 +197,17 @@ def obtener_entidades_financieras_dinamicas():
     df_prov = cargar_datos_google_sheet(URL_GOOGLE_SHEET_PROVEEDORES)
     if not df_prov.empty:
         df_prov.columns = [str(c).strip().upper() for c in df_prov.columns]
-        col_entidad = [c for c in df_prov.columns if "ENTIDAD" in c or "BANCO" in c or "INSTITUCION" in c]
-        col_contacto = [c for c in df_prov.columns if "CONTACTO" in c or "NOMBRE" in c]
+        col_entidad = [c for c in df_prov.columns if "ENTIDAD" in c or "BANCO" in c or "INSTITUCION" in c or "PROVEEDOR" in c]
+        col_contacto = [c for c in df_prov.columns if "CONTACTO" in c or "NOMBRE" in c or "EJECUTIVO" in c]
         col_correo = [c for c in df_prov.columns if "CORREO" in c or "EMAIL" in c]
         
         entidades = []
         for _, row in df_prov.iterrows():
-            ent = row[col_entidad[0]] if col_entidad else "Entidad Financiera"
-            cont = row[col_contacto[0]] if col_contacto else "Ejecutivo de Créditos"
-            corr = row[col_correo[0]] if col_correo else "creditos@escalafinance.com.ec"
+            ent = row[col_entidad[0]] if col_entidad else row.iloc[0]
+            cont = row[col_contacto[0]] if col_contacto else (row.iloc[1] if len(row) > 1 else "Ejecutivo de Créditos")
+            corr = row[col_correo[0]] if col_correo else (row.iloc[2] if len(row) > 2 else "creditos@escalafinance.com.ec")
             if pd.notna(ent) and pd.notna(corr):
-                entidades.append({"entidad": str(ent), "contacto": str(cont), "email": str(corr)})
+                entidades.append({"entidad": str(ent).strip(), "contacto": str(cont).strip(), "email": str(corr).strip()})
         if entidades:
             return entidades
 
@@ -218,7 +221,7 @@ def obtener_entidades_financieras_dinamicas():
 init_db()
 
 # ==============================================================================
-# 3. MANEJO DE PLANTILLA EXCEL Y GENERADOR DE SOLICITUD
+# 3. MANEJO DE PLANTILLA EXCEL Y GENERADOR DE SOLICITUD (CORREGIDO OPENPYXL)
 # ==============================================================================
 def cargar_plantilla_excel_bytes():
     with open(NOMBRE_PLANTILLA_EXCEL, "rb") as f:
@@ -228,26 +231,27 @@ def prellenar_excel_solicitud(datos):
     wb = openpyxl.load_workbook(NOMBRE_PLANTILLA_EXCEL)
     ws = wb["Sol. Crédito PN"]
     
-    ws["D6"] = datetime.now().strftime("%Y-%m-%d")
-    ws["D9"] = datos.get("monto", 0)
-    ws["O9"] = datos.get("plazo", 12)
-    ws["AB9"] = datos.get("dia_pago", 5)
+    # Asignación usando .value para máxima compatibilidad con Python 3.14
+    ws["D6"].value = datetime.now().strftime("%Y-%m-%d")
+    ws["D9"].value = datos.get("monto", 0)
+    ws["O9"].value = datos.get("plazo", 12)
+    ws["AB9"].value = datos.get("dia_pago", 5)
     
-    ws["D23"] = datos.get("apellido_paterno", "")
-    ws["K23"] = datos.get("apellido_materno", "")
-    ws["R23"] = datos.get("nombres", "")
-    ws["D25"] = datos.get("cedula", "")
-    ws["AD25"] = datos.get("telefono", "")
-    ws["D39"] = datos.get("direccion", "")
-    ws["AE39"] = datos.get("email", "")
+    ws["D23"].value = datos.get("apellido_paterno", "")
+    ws["K23"].value = datos.get("apellido_materno", "")
+    ws["R23"].value = datos.get("nombres", "")
+    ws["D25"].value = datos.get("cedula", "")
+    ws["AD25"].value = datos.get("telefono", "")
+    ws["D39"].value = datos.get("direccion", "")
+    ws["AE39"].value = datos.get("email", "")
     
-    ws["R52"] = datos.get("empresa", "")
-    ws["D54"] = datos.get("cargo", "")
+    ws["R52"].value = datos.get("empresa", "")
+    ws["D54"].value = datos.get("cargo", "")
     
-    ws["H112"] = datos.get("ingresos_fijos", 0)
-    ws["H113"] = datos.get("ventas", 0)
-    ws["V112"] = datos.get("gastos_familiares", 0)
-    ws["V113"] = datos.get("arriendo", 0)
+    ws["H112"].value = datos.get("ingresos_fijos", 0)
+    ws["H113"].value = datos.get("ventas", 0)
+    ws["V112"].value = datos.get("gastos_familiares", 0)
+    ws["V113"].value = datos.get("arriendo", 0)
     
     output = BytesIO()
     wb.save(output)
@@ -430,7 +434,6 @@ str_app.markdown("""
 str_app.markdown("<h1 style='text-align: center; font-size: 2.8rem;'>🏛️ ESCALA Consultoría Financiera y Empresarial</h1>", unsafe_allow_html=True)
 str_app.markdown("<p style='text-align: center; color: #D4AF37; font-size: 1.3rem; font-weight: bold;'>Solución Integral de Intermediación Financiera e Inteligencia Fiscal</p>", unsafe_allow_html=True)
 
-# LÍNEA CORREGIDA: 6 variables coinciden exactamente con las 6 etiquetas de pestañas
 tab_solicitud, tab_crm, tab_calificacion, tab_simuladores, tab_valuacion, tab_cresa = str_app.tabs([
     "📝 1. Fábrica de Crédito & Despacho", 
     "📈 2. CRM, Trazabilidad & KPIs", 
