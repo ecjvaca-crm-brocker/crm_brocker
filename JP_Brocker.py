@@ -8,20 +8,16 @@ import os
 import shutil
 import sqlite3
 import smtplib
-import tempfile
 import urllib.parse
 
 from fpdf import FPDF
 import gspread
-import matplotlib.pyplot as plt
-import numpy as np
-import openpyxl
 import pandas as pd
 import streamlit as str_app
 import yfinance as yf
 
 # ==============================================================================
-# 1. CONFIGURACIONES INICIALES, BRANDING Y SECRETS
+# 1. CONFIGURACIONES INICIALES Y BRANDING
 # ==============================================================================
 str_app.set_page_config(
     page_title="ESCALA Consultoría Financiera y Empresarial",
@@ -32,13 +28,11 @@ str_app.set_page_config(
 
 NUMERO_WHATSAPP = "593998076979"
 PASSWORD_DASHBOARD = "Escala2026"
-NOMBRE_PLANTILLA_EXCEL = "Solicitud de Crédito ESCALA CONSULTORES_2.xlsx"
 DIR_RESPALDOS = "./respaldos_crm"
 
 if not os.path.exists(DIR_RESPALDOS):
     os.makedirs(DIR_RESPALDOS)
 
-# Estilos CSS Avanzados
 str_app.markdown(
     """
     <style>
@@ -62,36 +56,6 @@ str_app.markdown(
 """,
     unsafe_allow_html=True,
 )
-
-# Inicialización de Estados Globales
-if "activos_tangibles" not in str_app.session_state:
-    str_app.session_state.activos_tangibles = pd.DataFrame(
-        columns=[
-            "Clase",
-            "Descripción",
-            "Valor Contable",
-            "Valor Razonable",
-            "Norma Aplicada",
-        ]
-    )
-
-if "impuestos_diferidos" not in str_app.session_state:
-    str_app.session_state.impuestos_diferidos = pd.DataFrame(
-        columns=[
-            "Concepto",
-            "Base Contable",
-            "Base Fiscal",
-            "Diferencia",
-            "Tipo",
-            "Impuesto Diferido",
-        ]
-    )
-
-if "enterprise_value" not in str_app.session_state:
-    str_app.session_state.enterprise_value = 0.0
-
-if "tasa_fiscal_ecuador" not in str_app.session_state:
-    str_app.session_state.tasa_fiscal_ecuador = 25.0
 
 if "respuestas_bancos_manual" not in str_app.session_state:
     str_app.session_state.respuestas_bancos_manual = []
@@ -139,7 +103,7 @@ ENTIDADES_DESTINO = [
 
 
 # ==============================================================================
-# 2. CAPA DE PERSISTENCIA Y MIGRACIÓN AUTOMÁTICA (SQLITE CRM)
+# 2. CAPA DE PERSISTENCIA Y CRM
 # ==============================================================================
 def init_db():
     conn = sqlite3.connect("crm_escala.db")
@@ -176,20 +140,22 @@ def init_db():
     conn.close()
 
 
-def guardar_solicitud_crm(datos_sol, archivos_cargados):
+def guardar_solicitud_crm(datos_sol, lista_listas_archivos):
     cedula = datos_sol.get("cedula", "sin_cedula")
     dir_cliente = os.path.join(
         DIR_RESPALDOS, f"{cedula}_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
     )
     os.makedirs(dir_cliente, exist_ok=True)
 
-    if archivos_cargados:
-        for archivo in archivos_cargados:
-            if archivo is not None:
-                ruta_archivo = os.path.join(dir_cliente, archivo.name)
-                with open(ruta_archivo, "wb") as f:
-                    f.write(archivo.getbuffer())
-                archivo.seek(0)
+    # Recorrer listas de archivos adjuntos y guardarlos físicamente
+    for grupo_archivos in lista_listas_archivos:
+        if grupo_archivos:
+            for archivo in grupo_archivos:
+                if archivo is not None:
+                    ruta_archivo = os.path.join(dir_cliente, archivo.name)
+                    with open(ruta_archivo, "wb") as f:
+                        f.write(archivo.getbuffer())
+                    archivo.seek(0)
 
     conn = sqlite3.connect("crm_escala.db")
     cursor = conn.cursor()
@@ -232,164 +198,154 @@ init_db()
 
 
 # ==============================================================================
-# 3. MANEJO SEGURO DE PLANTILLA EXCEL Y MAPEO OFICIAL
+# 3. GENERADOR DE SOLICITUD OFICIAL EN PDF Y ENVÍO SMTP
 # ==============================================================================
-def set_cell_safe(ws, cell_coord, val):
-    """Permite escribir en celdas individuales o unificadas sin errores."""
-    cell = ws[cell_coord]
-    if type(cell).__name__ == "MergedCell":
-        for rng in ws.merged_cells.ranges:
-            if cell_coord in rng:
-                top_left = ws.cell(row=rng.min_row, column=rng.min_col)
-                top_left.value = val
-                return
-    else:
-        cell.value = val
-
-
-def prellenar_excel_solicitud(datos):
-    if os.path.exists(NOMBRE_PLANTILLA_EXCEL):
-        wb = openpyxl.load_workbook(NOMBRE_PLANTILLA_EXCEL)
-    else:
-        wb = openpyxl.Workbook()
-
-    ws = wb["Sol. Crédito PN"] if "Sol. Crédito PN" in wb.sheetnames else wb.active
-
-    try:
-        # Fecha y Condiciones de la Operación
-        set_cell_safe(ws, "G7", datetime.now().strftime("%Y-%m-%d"))
-        set_cell_safe(ws, "G10", float(datos.get("monto", 0)))
-        set_cell_safe(ws, "T10", int(datos.get("plazo", 12)))
-        set_cell_safe(ws, "AI10", int(datos.get("dia_pago", 5)))
-        set_cell_safe(ws, "I17", str(datos.get("destino_credito", "")))
-
-        # Datos Personales
-        set_cell_safe(ws, "H24", str(datos.get("apellido_paterno", "")))
-        set_cell_safe(ws, "R24", str(datos.get("apellido_materno", "")))
-        set_cell_safe(ws, "Z24", str(datos.get("nombres", "")))
-        set_cell_safe(ws, "H26", str(datos.get("cedula", "")))
-        set_cell_safe(ws, "R26", str(datos.get("ciudad", "Ibarra")))
-        set_cell_safe(ws, "AE26", "Ecuatoriana")
-
-        # Dirección y Contacto
-        set_cell_safe(ws, "F37", str(datos.get("direccion", "")))
-        set_cell_safe(ws, "Q38", str(datos.get("ciudad", "")))
-        set_cell_safe(ws, "AF38", "Centro / Urbano")
-        set_cell_safe(ws, "M40", str(datos.get("telefono", "")))
-        set_cell_safe(ws, "AJ40", str(datos.get("telefono", "")))
-        set_cell_safe(ws, "V40", str(datos.get("email", "")))
-
-        # Información Laboral
-        set_cell_safe(ws, "N53", str(datos.get("empresa", "")))
-        set_cell_safe(ws, "AE53", str(datos.get("cargo", "")))
-
-        # Ingresos y Egresos Financieros
-        set_cell_safe(ws, "R113", float(datos.get("ingresos_fijos", 0)))
-        set_cell_safe(ws, "R115", float(datos.get("ingresos_fijos", 0)))
-        set_cell_safe(ws, "AK113", float(datos.get("gastos_familiares", 0)))
-        set_cell_safe(ws, "AK114", 300.0)  # Arriendo estimado
-
-        # Ubicación Google Maps para Croquis
-        mapa_dom = datos.get("mapa_domicilio", "No especificado")
-        mapa_trab = datos.get("mapa_trabajo", "No especificado")
-        set_cell_safe(
-            ws, "C163", f"Ubicación Google Maps Domicilio: {mapa_dom}"
-        )
-        set_cell_safe(
-            ws, "X163", f"Ubicación Google Maps Trabajo: {mapa_trab}"
-        )
-
-    except Exception as e:
-        print(f"Aviso de mapeo Excel: {e}")
-
-    output = BytesIO()
-    wb.save(output)
-    output.seek(0)
-    return output
-
-
-class PDFSolicitudCredito(FPDF):
+class PDFSolicitudOficial(FPDF):
 
     def header(self):
-        self.set_font("helvetica", "B", 11)
+        self.set_font("helvetica", "B", 12)
         self.set_text_color(10, 37, 64)
         self.cell(
             0,
             8,
-            "ESCALA CONSULTORIA FINANCIERA - SOLICITUD DE CRÉDITO",
+            "ESCALA CONSULTORÍA FINANCIERA Y EMPRESARIAL",
+            0,
+            1,
+            "C",
+        )
+        self.set_font("helvetica", "", 9)
+        self.cell(
+            0,
+            5,
+            "FORMULARIO OFICIAL DE SOLICITUD DE CRÉDITO Y CROQUIS DIGITAL",
             0,
             1,
             "C",
         )
         self.set_draw_color(212, 175, 55)
         self.set_line_width(0.8)
-        self.line(10, 18, 200, 18)
+        self.line(10, 20, 200, 20)
         self.ln(6)
 
     def footer(self):
         self.set_y(-15)
         self.set_font("helvetica", "I", 8)
+        self.set_text_color(120, 120, 120)
         self.cell(
             0,
             10,
-            "Documento Informativo y de Recolección de Datos - Escala Consultores",
+            "Documento Oficial Compilado - Escala Consultores | Uso Institucional",
             0,
             0,
             "C",
         )
 
 
-def generar_pdf_solicitud(datos):
-    pdf = PDFSolicitudCredito()
+def generar_pdf_solicitud_oficial(datos):
+    pdf = PDFSolicitudOficial()
     pdf.add_page()
-    pdf.set_font("helvetica", "B", 12)
-    pdf.set_text_color(10, 37, 64)
-    pdf.cell(
-        0,
-        8,
-        f"Expediente de Solicitud N° {datetime.now().strftime('%Y%m%d%H%M')}",
-        0,
-        1,
-        "L",
-    )
-    pdf.ln(2)
+    pdf.set_auto_page_break(auto=True, margin=15)
 
-    lineas = [
-        ("Cliente / Solicitante:", datos["nombre"]),
-        ("Cédula de Identidad / RUC:", datos["cedula"]),
-        ("Contacto Telefónico:", datos["telefono"]),
-        ("Ciudad / Ubicación:", datos["ciudad"]),
+    pdf.set_font("helvetica", "B", 10)
+    pdf.set_fill_color(10, 37, 64)
+    pdf.set_text_color(255, 255, 255)
+    pdf.cell(0, 6, " 1. DATOS DE LA OPERACIÓN Y CRÉDITO", 0, 1, "L", fill=True)
+
+    pdf.set_text_color(0, 0, 0)
+    pdf.set_font("helvetica", "", 9)
+    seccion_1 = [
+        ("Monto Solicitado:", f"${datos['monto']:,.2f}"),
+        ("Plazo:", f"{datos['plazo']} Meses"),
+        ("Día de Pago:", f"Día {datos['dia_pago']} de cada mes"),
         ("Tipo de Crédito:", datos["tipo_credito"]),
         ("Destino del Crédito:", datos["destino_credito"]),
-        ("Monto Solicitado:", f"${datos['monto']:,.2f}"),
-        ("Plazo Solicitado:", f"{datos['plazo']} Meses"),
-        (
-            "Ubicación Google Maps Domicilio:",
-            datos.get("mapa_domicilio", "N/A"),
-        ),
-        ("Ubicación Google Maps Trabajo:", datos.get("mapa_trabajo", "N/A")),
-        ("Fecha de Emisión:", datetime.now().strftime("%Y-%m-%d %H:%M")),
     ]
+    for k, v in seccion_1:
+        pdf.cell(60, 5, k, 1, 0, "L", 0)
+        pdf.cell(130, 5, str(v), 1, 1, "L", 0)
 
-    for label, val in lineas:
-        pdf.set_font("helvetica", "B", 9)
-        pdf.cell(65, 6, label, 1, 0, "L")
-        pdf.set_font("helvetica", "", 9)
-        pdf.cell(115, 6, str(val), 1, 1, "L")
+    pdf.ln(3)
 
-    pdf.ln(5)
-    pdf.set_font("helvetica", "I", 8)
-    pdf.multi_cell(
-        0,
-        4.5,
-        "Aviso Legal: El presente documento recopila la información necesaria para el trámite de crédito. Las operaciones aprobadas serán regularizadas formalmente por la entidad financiera asignada.",
+    pdf.set_font("helvetica", "B", 10)
+    pdf.set_fill_color(10, 37, 64)
+    pdf.set_text_color(255, 255, 255)
+    pdf.cell(0, 6, " 2. DATOS PERSONALES Y DE CONTACTO", 0, 1, "L", fill=True)
+
+    pdf.set_text_color(0, 0, 0)
+    pdf.set_font("helvetica", "", 9)
+    seccion_2 = [
+        ("Apellidos y Nombres:", datos["nombre"]),
+        ("Cédula de Identidad / RUC:", datos["cedula"]),
+        ("Ciudad / Dirección:", f"{datos['ciudad']} - {datos['direccion']}"),
+        ("Teléfono / Celular:", datos["telefono"]),
+        ("Correo Electrónico:", datos["email"]),
+    ]
+    for k, v in seccion_2:
+        pdf.cell(60, 5, k, 1, 0, "L", 0)
+        pdf.cell(130, 5, str(v), 1, 1, "L", 0)
+
+    pdf.ln(3)
+
+    pdf.set_font("helvetica", "B", 10)
+    pdf.set_fill_color(10, 37, 64)
+    pdf.set_text_color(255, 255, 255)
+    pdf.cell(
+        0, 6, " 3. INFORMACIÓN LABORAL Y FINANCIERA BÁSICA", 0, 1, "L", fill=True
     )
+
+    pdf.set_text_color(0, 0, 0)
+    pdf.set_font("helvetica", "", 9)
+    seccion_3 = [
+        ("Empresa / Negocio:", datos["empresa"]),
+        ("Cargo / Actividad:", datos["cargo"]),
+        ("Ingresos Fijos / Ventas ($):", f"${datos['ingresos_fijos']:,.2f}"),
+        ("Gastos Familiares ($):", f"${datos['gastos_familiares']:,.2f}"),
+    ]
+    for k, v in seccion_3:
+        pdf.cell(60, 5, k, 1, 0, "L", 0)
+        pdf.cell(130, 5, str(v), 1, 1, "L", 0)
+
+    pdf.ln(3)
+
+    pdf.set_font("helvetica", "B", 10)
+    pdf.set_fill_color(10, 37, 64)
+    pdf.set_text_color(255, 255, 255)
+    pdf.cell(
+        0, 6, " 4. UBICACIÓN GEOGRÁFICA Y CROQUIS (GOOGLE MAPS)", 0, 1, "L", fill=True
+    )
+
+    pdf.set_text_color(0, 0, 0)
+    pdf.set_font("helvetica", "", 9)
+    seccion_4 = [
+        ("Ubicación Domicilio:", datos.get("mapa_domicilio", "No especificado")),
+        ("Ubicación Trabajo:", datos.get("mapa_trabajo", "No especificado")),
+    ]
+    for k, v in seccion_4:
+        pdf.cell(60, 5, k, 1, 0, "L", 0)
+        pdf.cell(130, 5, str(v), 1, 1, "L", 0)
+
+    pdf.ln(8)
+
+    pdf.set_font("helvetica", "B", 9)
+    pdf.cell(
+        0,
+        5,
+        "DECLARACIÓN Y CONFORMIDAD: Certifico que los datos proporcionados son exactos.",
+        0,
+        1,
+        "C",
+    )
+    pdf.ln(15)
+    pdf.cell(95, 5, "f) ___________________________________", 0, 0, "C")
+    pdf.cell(95, 5, "f) ___________________________________", 0, 1, "C")
+    pdf.cell(95, 5, "Solicitante / Deudor Principal", 0, 0, "C")
+    pdf.cell(95, 5, "Asesor / Oficial de Crédito ESCALA", 0, 1, "C")
 
     return BytesIO(pdf.output(dest="S"))
 
 
 def enviar_expediente_por_correo(
-    datos_solicitud, pdf_bytes, excel_bytes, archivos_adjuntos, correos_destino
+    datos_solicitud, pdf_bytes, lista_listas_adjuntos, correos_destino
 ):
     try:
         smtp_server = str_app.secrets["smtp"]["server"]
@@ -401,72 +357,65 @@ def enviar_expediente_por_correo(
         msg["From"] = sender_email
         msg["To"] = sender_email
         msg["Subject"] = (
-            f"EXPEDIENTE DE CRÉDITO: {datos_solicitud['nombre']} - {datos_solicitud['tipo_credito']}"
+            f"EXPEDIENTE OFICIAL DE CRÉDITO: {datos_solicitud['nombre']} - {datos_solicitud['tipo_credito']}"
         )
 
         body = f"""
         Estimado Equipo de Evaluación de Riesgos y Crédito,
         
-        Remitimos el expediente formal de solicitud de crédito del cliente {datos_solicitud['nombre']}.
+        Remitimos la solicitud oficial de crédito y la documentación patrimonial del cliente {datos_solicitud['nombre']}.
         
         • Cédula: {datos_solicitud['cedula']}
         • Tipo de Crédito: {datos_solicitud['tipo_credito']}
-        • Destino: {datos_solicitud['destino_credito']}
         • Monto Solicitado: ${datos_solicitud['monto']:,.2f}
         • Plazo: {datos_solicitud['plazo']} meses
         • Ubicación Domicilio (Maps): {datos_solicitud.get('mapa_domicilio')}
         • Ubicación Trabajo (Maps): {datos_solicitud.get('mapa_trabajo')}
         
-        Se adjuntan el formulario Excel oficial prellenado, el resumen en PDF y los documentos soporte.
+        Se adjuntan el PDF oficial firmado, la cédula, los sustentos de ingresos y los respaldos patrimoniales (predial, matrícula, etc.).
         
         Atentamente,
         Escala Consultoría Empresarial y Financiera
         """
         msg.attach(MIMEText(body, "plain"))
 
+        # Adjuntar PDF principal de solicitud
         p_pdf = MIMEBase("application", "octet-stream")
         p_pdf.set_payload(pdf_bytes.getvalue())
         encoders.encode_base64(p_pdf)
         p_pdf.add_header(
             "Content-Disposition",
-            f'attachment; filename="Resumen_Solicitud_{datos_solicitud["cedula"]}.pdf"',
+            f'attachment; filename="Solicitud_Firmada_Escala_{datos_solicitud["cedula"]}.pdf"',
         )
         msg.attach(p_pdf)
 
-        p_xls = MIMEBase("application", "octet-stream")
-        p_xls.set_payload(excel_bytes.getvalue())
-        encoders.encode_base64(p_xls)
-        p_xls.add_header(
-            "Content-Disposition",
-            f'attachment; filename="Solicitud_Oficial_Escala_{datos_solicitud["cedula"]}.xlsx"',
-        )
-        msg.attach(p_xls)
-
-        if archivos_adjuntos:
-            for adj in archivos_adjuntos:
-                if adj is not None:
-                    p_file = MIMEBase("application", "octet-stream")
-                    p_file.set_payload(adj.getvalue())
-                    encoders.encode_base64(p_file)
-                    p_file.add_header(
-                        "Content-Disposition",
-                        f'attachment; filename="{adj.name}"',
-                    )
-                    msg.attach(p_file)
-                    adj.seek(0)
+        # Adjuntar todos los archivos de las diferentes categorías de subida
+        for grupo in lista_listas_adjuntos:
+            if grupo:
+                for adj in grupo:
+                    if adj is not None:
+                        p_file = MIMEBase("application", "octet-stream")
+                        p_file.set_payload(adj.getvalue())
+                        encoders.encode_base64(p_file)
+                        p_file.add_header(
+                            "Content-Disposition",
+                            f'attachment; filename="{adj.name}"',
+                        )
+                        msg.attach(p_file)
+                        adj.seek(0)
 
         with smtplib.SMTP(smtp_server, smtp_port) as server:
             server.starttls()
             server.login(sender_email, sender_password)
             server.send_message(msg)
 
-        return True, "Expediente digital despachado exitosamente."
+        return True, "Expediente oficial despachado exitosamente."
     except Exception as e:
         return False, str(e)
 
 
 # ==============================================================================
-# 4. INTERFAZ Y NAVEGACIÓN EN PESTAÑAS
+# 4. NAVEGACIÓN Y PESTAÑAS PRINCIPALES
 # ==============================================================================
 str_app.markdown(
     "<h1 style='text-align: center; font-size: 2.6rem;'>🏛️ Escala Corporate: Brokerage & Valuation Hub</h1>",
@@ -480,7 +429,7 @@ str_app.markdown(
 tab_solicitud, tab_crm, tab_calificacion, tab_simuladores, tab_valuacion, tab_cresa, tab_salas = (
     str_app.tabs(
         [
-            "📝 1. Captura & Solicitud",
+            "📝 1. Solicitud & PDF Firmado",
             "📊 2. Pipeline CRM & Expedientes",
             "🏆 3. Calificación de Ofertas",
             "🧮 4. Simuladores & CDP",
@@ -492,14 +441,14 @@ tab_solicitud, tab_crm, tab_calificacion, tab_simuladores, tab_valuacion, tab_cr
 )
 
 # ------------------------------------------------------------------------------
-# PESTAÑA 1: CAPTURA & SOLICITUD DE CRÉDITO CON GOOGLE MAPS
+# PESTAÑA 1: CAPTURA & SOLICITUD CON DOCUMENTOS PATRIMONIALES Y MAPS
 # ------------------------------------------------------------------------------
 with tab_solicitud:
     str_app.markdown(
         """
     <div class="card-corporativa" style="border-top: 5px solid #10B981;">
-        <h3>📋 Registro de Solicitud, Croquis Digital y Expediente Oficial</h3>
-        <p style='color: #4A5568;'>Completa los datos del cliente. El sistema prellenará automáticamente el formulario oficial Excel con todas las casillas correspondientes y despachará el expediente por correo.</p>
+        <h3>📋 Generación de Solicitud Oficial, Croquis Google Maps y Respaldos</h3>
+        <p style='color: #4A5568;'>Completa la información del cliente, adjunta la solicitud firmada y carga todos los respaldos patrimoniales e ingresos necesarios (impuesto predial, matrículas, roles, etc.).</p>
     </div>
     """,
         unsafe_allow_html=True,
@@ -568,16 +517,23 @@ with tab_solicitud:
             "Gastos Familiares / Arriendo ($):", value=500.0
         )
 
-        str_app.subheader("5. Documentación Adjunta Digitalizada")
-        f1, f2, f3 = str_app.columns(3)
-        doc_cedula = f1.file_uploader(
+        str_app.subheader("5. Documentación y Respaldos de Respaldo")
+        f1, f2, f3, f4 = str_app.columns(4)
+        doc_solicitud_firmada = f1.file_uploader(
+            "📄 Solicitud Firmada (PDF)", type=["pdf"]
+        )
+        doc_cedula = f2.file_uploader(
             "🪪 Cédulas (PDF/Imagen)", type=["pdf", "png", "jpg", "jpeg"]
         )
-        doc_ingresos = f2.file_uploader(
-            "📦 Sustento de Ingresos", type=["pdf", "png", "jpg", "jpeg"]
+        doc_ingresos = f3.file_uploader(
+            "📦 Sustento de Ingresos / ROL",
+            type=["pdf", "png", "jpg", "jpeg"],
         )
-        doc_planilla = f3.file_uploader(
-            "🏠 Planilla Básica", type=["pdf", "png", "jpg", "jpeg"]
+        # NUEVO CAMPO HABILITADO PARA RESPALDOS PATRIMONIALES Y OTROS
+        doc_patrimonial = f4.file_uploader(
+            "🏛️ Respaldos Patrimoniales (Predial, Matrícula Vehicular, etc.)",
+            type=["pdf", "png", "jpg", "jpeg"],
+            accept_multiple_files=True,
         )
 
         bancos_sel = str_app.multiselect(
@@ -587,7 +543,7 @@ with tab_solicitud:
         )
 
         btn_enviar_expediente = str_app.form_submit_button(
-            "🚀 Generar Expediente y Enviar Solicitud Oficial"
+            "🚀 Generar Expediente y Enviar por Correo"
         )
 
     if btn_enviar_expediente:
@@ -596,9 +552,6 @@ with tab_solicitud:
         else:
             datos_sol = {
                 "nombre": f"{nombres} {ap_paterno} {ap_materno}".strip(),
-                "apellido_paterno": ap_paterno,
-                "apellido_materno": ap_materno,
-                "nombres": nombres,
                 "cedula": cedula,
                 "telefono": telefono,
                 "email": email,
@@ -617,40 +570,51 @@ with tab_solicitud:
                 "mapa_trabajo": mapa_trabajo,
             }
 
-            excel_bytes = prellenar_excel_solicitud(datos_sol)
-            pdf_bytes = generar_pdf_solicitud(datos_sol)
-            adjuntos = [doc_cedula, doc_ingresos, doc_planilla]
+            pdf_bytes = generar_pdf_solicitud_oficial(datos_sol)
+            # Agrupamos todos los archivos cargados (incluyendo la lista de múltiples respaldos patrimoniales)
+            lista_adjuntos = [
+                [doc_solicitud_firmada],
+                [doc_cedula],
+                [doc_ingresos],
+                doc_patrimonial,
+            ]
             correos = [
                 b["email"]
                 for b in ENTIDADES_DESTINO
                 if b["nombre"] in bancos_sel
             ]
 
-            guardar_solicitud_crm(datos_sol, adjuntos)
+            guardar_solicitud_crm(datos_sol, lista_adjuntos)
             exito, msg_e = enviar_expediente_por_correo(
-                datos_sol, pdf_bytes, excel_bytes, adjuntos, correos
+                datos_sol, pdf_bytes, lista_adjuntos, correos
             )
 
             if exito:
                 str_app.success(
-                    "🎉 ¡Expediente oficial prellenado, registrado en CRM y enviado vía SMTP con éxito!"
+                    "🎉 ¡Expediente completo con respaldos patrimoniales registrado en CRM y enviado por correo con éxito!"
                 )
             else:
                 str_app.warning(
-                    f"⚠️ Expediente guardado en CRM pero hubo un problema al enviar correo: {msg_e}"
+                    f"⚠️ Expediente guardado en CRM pero falló el envío SMTP: {msg_e}"
                 )
 
+            str_app.download_button(
+                label="📥 Descargar Formato PDF de Solicitud Oficial para Firmar",
+                data=pdf_bytes,
+                file_name=f"Solicitud_Oficial_{cedula}.pdf",
+                mime="application/pdf",
+                use_container_width=True,
+            )
+
 # ------------------------------------------------------------------------------
-# PESTAÑA 2: PIPELINE CRM Y EXPEDIENTES
+# PESTAÑAS 2 A 7 (CRM, CALIFICACIÓN, SIMULADORES, VALUATION, CRESA, SALAS)
 # ------------------------------------------------------------------------------
 with tab_crm:
     str_app.subheader("📊 Pipeline CRM de Solicitudes y Expedientes")
-
     conn = sqlite3.connect("crm_escala.db")
     df_solicitudes = pd.read_sql_query(
         "SELECT * FROM solicitudes ORDER BY id DESC", conn
     )
-
     if df_solicitudes.empty:
         str_app.info("No hay solicitudes registradas actualmente en el CRM.")
     else:
@@ -658,114 +622,53 @@ with tab_crm:
             with str_app.expander(
                 f"📌 [{row['estado']}] - {row['nombre']} | Cédula: {row['cedula']} - ${row['monto']:,.2f}"
             ):
-                st1, st2 = str_app.columns(2)
-                st1.write(f"**Teléfono:** {row['telefono']}")
-                st1.write(f"**Email:** {row['email']}")
-                st1.write(
+                str_app.write(
+                    f"**Teléfono:** {row['telefono']} | **Email:** {row['email']}"
+                )
+                str_app.write(
                     f"**Tipo:** {row['tipo_credito']} | **Destino:** {row['destino']}"
                 )
-
                 dir_docs = row["directorio_docs"]
-                str_app.subheader("📁 Archivos de Respaldo y Formulario")
                 if dir_docs and os.path.exists(dir_docs):
-                    archivos = os.listdir(dir_docs)
-                    if archivos:
-                        for arch in archivos:
-                            ruta_f = os.path.join(dir_docs, arch)
-                            with open(ruta_f, "rb") as f_data:
-                                str_app.download_button(
-                                    label=f"⬇️ Descargar {arch}",
-                                    data=f_data,
-                                    file_name=arch,
-                                    key=f"dl_{row['id']}_{arch}",
-                                )
-                    else:
-                        str_app.caption("Directorio vacío.")
-                else:
-                    str_app.caption(
-                        "🔒 Archivos eliminados conforme a política de privacidad y limpieza."
-                    )
-
-                str_app.subheader("⚙️ Gestión y Cierre")
-                c_e1, c_e2 = str_app.columns(2)
-                with c_e1:
-                    nuevo_st = str_app.selectbox(
-                        "Actualizar Estado",
-                        ["En Proceso", "Aprobado", "Rechazado", "Liquidado"],
-                        index=[
-                            "En Proceso",
-                            "Aprobado",
-                            "Rechazado",
-                            "Liquidado",
-                        ].index(row["estado"]),
-                        key=f"st_sel_{row['id']}",
-                    )
-                    if str_app.button(
-                        "Guardar Estado", key=f"btn_st_save_{row['id']}"
-                    ):
+                    for arch in os.listdir(dir_docs):
+                        with open(os.path.join(dir_docs, arch), "rb") as fd:
+                            str_app.download_button(
+                                f"⬇️ Descargar {arch}",
+                                fd,
+                                file_name=arch,
+                                key=f"dl_{row['id']}_{arch}",
+                            )
+                if str_app.button(
+                    "🗑️ Borrar Documentación (Privacidad)",
+                    key=f"del_{row['id']}",
+                ):
+                    if dir_docs and os.path.exists(dir_docs):
+                        eliminar_documentos_cliente(dir_docs)
                         c_db = conn.cursor()
                         c_db.execute(
-                            "UPDATE solicitudes SET estado = ? WHERE id = ?",
-                            (nuevo_st, row["id"]),
+                            "UPDATE solicitudes SET directorio_docs = '' WHERE id = ?",
+                            (row["id"],),
                         )
                         conn.commit()
-                        str_app.success("Estado actualizado.")
                         str_app.rerun()
-
-                with c_e2:
-                    if str_app.button(
-                        "🗑️ Borrar Documentación (Privacidad)",
-                        key=f"btn_del_doc_{row['id']}",
-                    ):
-                        if dir_docs and os.path.exists(dir_docs):
-                            if eliminar_documentos_cliente(dir_docs):
-                                c_db = conn.cursor()
-                                c_db.execute(
-                                    "UPDATE solicitudes SET directorio_docs = '' WHERE id = ?",
-                                    (row["id"],),
-                                )
-                                conn.commit()
-                                str_app.success("Documentos borrados.")
-                                str_app.rerun()
     conn.close()
 
-# ------------------------------------------------------------------------------
-# PESTAÑA 3: CALIFICACIÓN DEL TOP 3 DE OFERTAS
-# ------------------------------------------------------------------------------
 with tab_calificacion:
-    str_app.markdown("""
-    <div class="card-corporativa" style="border-top: 5px solid #0A2540;">
-        <h3>📥 Ingreso de Respuestas y Calificación de Ofertas</h3>
-    </div>
-    """, unsafe_allow_html=True)
-
-    col_r1, col_r2 = str_app.columns([1, 1.4])
-    with col_r1:
-        with str_app.form("form_reg_respuesta", clear_on_submit=True):
-            entidad_resp = str_app.selectbox(
-                "Entidad Financiera:", [b["nombre"] for b in ENTIDADES_DESTINO]
-            )
-            estado_resp = str_app.selectbox(
-                "Dictamen:", ["APROBADO", "RECHAZADO", "CONDICIONADO"]
-            )
-            monto_aprob = str_app.number_input(
-                "Monto Aprobado ($):",
-                min_value=0.0,
-                value=5000.0,
-                step=250.0,
-            )
-            tasa_tea = str_app.number_input(
-                "Tasa (TEA %):", min_value=0.1, value=15.5, step=0.1
-            )
-            plazo_aprob = str_app.number_input(
-                "Plazo (Meses):", min_value=1, value=24
-            )
-            obs = str_app.text_input("Observación:")
-            btn_guardar_oferta = str_app.form_submit_button(
-                "➕ Registrar Oferta"
-            )
-
-        if btn_guardar_oferta:
+    str_app.subheader("🏆 Calificación del Top 3 de Ofertas")
+    with str_app.form("form_reg_resp", clear_on_submit=True):
+        entidad_resp = str_app.selectbox(
+            "Entidad:", [b["nombre"] for b in ENTIDADES_DESTINO]
+        )
+        estado_resp = str_app.selectbox(
+            "Dictamen:", ["APROBADO", "RECHAZADO", "CONDICIONADO"]
+        )
+        monto_aprob = str_app.number_input(
+            "Monto Aprobado ($):", value=5000.0, step=250.0
+        )
+        tasa_tea = str_app.number_input("Tasa (TEA %):", value=15.5, step=0.1)
+        plazo_aprob = str_app.number_input("Plazo (Meses):", value=24)
+        obs = str_app.text_input("Observación:")
+        if str_app.form_submit_button("➕ Registrar Oferta"):
             str_app.session_state.respuestas_bancos_manual.append({
                 "Entidad": entidad_resp,
                 "Estado": estado_resp,
@@ -774,258 +677,48 @@ with tab_calificacion:
                 "Plazo (Meses)": plazo_aprob,
                 "Observación": obs,
             })
-            str_app.success("Oferta registrada.")
+            str_app.success("Registrado.")
+    if str_app.session_state.respuestas_bancos_manual:
+        df_r = pd.DataFrame(str_app.session_state.respuestas_bancos_manual)
+        str_app.dataframe(df_r, use_container_width=True)
 
-    with col_r2:
-        if str_app.session_state.respuestas_bancos_manual:
-            df_resp = pd.DataFrame(
-                str_app.session_state.respuestas_bancos_manual
-            )
-            aprobadas = df_resp[df_resp["Estado"] == "APROBADO"].copy()
-
-            if not aprobadas.empty:
-                aprobadas["Score"] = (
-                    100 / aprobadas["Tasa (TEA %)"]
-                ) * 0.6 + (aprobadas["Monto Aprobado"] / 100) * 0.4
-                top_3 = aprobadas.sort_values(
-                    by="Score", ascending=False
-                ).head(3)
-
-                str_app.subheader("🏆 Top 3 Ofertas Calificadas")
-                str_app.dataframe(
-                    top_3[[
-                        "Entidad",
-                        "Monto Aprobado",
-                        "Tasa (TEA %)",
-                        "Plazo (Meses)",
-                        "Observación",
-                    ]],
-                    use_container_width=True,
-                )
-
-                mejor_o = top_3.iloc[0]
-                str_app.success(
-                    f"🥇 **Opción Adjudicada:** {mejor_o['Entidad']} por **${mejor_o['Monto Aprobado']:,.2f}** al **{mejor_o['Tasa (TEA %)']}% TEA**."
-                )
-
-                msg_ws = f"Hola, deseo continuar con la oferta de {mejor_o['Entidad']} por ${mejor_o['Monto Aprobado']:,.2f} al {mejor_o['Tasa (TEA %)']}% TEA."
-                url_ws = f"https://api.whatsapp.com/send?phone={NUMERO_WHATSAPP}&text={urllib.parse.quote(msg_ws)}"
-                str_app.link_button(
-                    "🟢 Continuar Desembolso vía WhatsApp", url_ws
-                )
-
-# ------------------------------------------------------------------------------
-# PESTAÑA 4: SIMULADORES Y AMORTIZACIÓN
-# ------------------------------------------------------------------------------
 with tab_simuladores:
-    s_tab1, s_tab2 = str_app.tabs(
-        ["🧮 Capacidad de Pago (CDP)", "📋 Amortización Francesa"]
+    str_app.subheader("🧮 Simulador de Capacidad de Pago y Amortización")
+    mc = str_app.number_input("Monto ($)", value=10000.0)
+    tc = str_app.number_input("Tasa Anual (%)", value=15.0)
+    pc = str_app.selectbox("Plazo (Meses)", [12, 24, 36, 48, 60], index=2)
+    im = (tc / 100) / 12
+    cuota = (
+        mc * (im * (1 + im) ** pc) / ((1 + im) ** pc - 1)
+        if im > 0
+        else mc / pc
+    )
+    str_app.metric("Cuota Mensual Estimada", f"${cuota:,.2f}")
+
+with tab_valuacion:
+    str_app.subheader("📈 Valuation NIIF & Tax Hub")
+    str_app.write(
+        "Módulo financiero avanzado para valoración de activos y flujos descontados."
     )
 
-    with s_tab1:
-        sc1, sc2, sc3 = str_app.columns(3)
-        m_calc = sc1.number_input(
-            "Monto ($):", value=10000.0, key="cdp_monto"
-        )
-        t_calc = sc2.number_input(
-            "Tasa Anual (%):", value=15.0, key="cdp_tasa"
-        )
-        p_calc = sc3.selectbox(
-            "Plazo (Meses):", [12, 24, 36, 48, 60], index=2, key="cdp_plazo"
-        )
-
-        i_m = (t_calc / 100) / 12
-        cuota_est = (
-            m_calc * (i_m * (1 + i_m) ** p_calc) / ((1 + i_m) ** p_calc - 1)
-            if i_m > 0
-            else m_calc / p_calc
-        )
-        str_app.metric("💵 Cuota Mensual Estimada", f"${cuota_est:,.2f}")
-
-    with s_tab2:
-        ma = str_app.number_input("Capital ($):", value=15000.0, key="am_monto")
-        ta = str_app.number_input("Tasa Anual (%):", value=14.0, key="am_tasa")
-        pa = str_app.selectbox(
-            "Plazo (Meses):", [12, 24, 36, 48, 60], index=2, key="am_plazo"
-        )
-
-        if str_app.button("⚙️ Generar Tabla"):
-            tm = (ta / 100) / 12
-            c_fija = ma * (tm * (1 + tm) ** pa) / ((1 + tm) ** pa - 1)
-            saldo = ma
-            cronograma = []
-            for mes in range(1, pa + 1):
-                i_mes = saldo * tm
-                cap_mes = c_fija - i_mes
-                saldo -= cap_mes
-                cronograma.append({
-                    "Mes": mes,
-                    "Cuota": round(c_fija, 2),
-                    "Interés": round(i_mes, 2),
-                    "Abono Capital": round(cap_mes, 2),
-                    "Saldo Final": round(max(0, saldo), 2),
-                })
-            str_app.dataframe(
-                pd.DataFrame(cronograma), use_container_width=True
-            )
-
-# ------------------------------------------------------------------------------
-# PESTAÑA 5: VALUATION & TAX HUB (NIIF / LRTI)
-# ------------------------------------------------------------------------------
-with tab_valuacion:
-    v1, v2 = str_app.tabs(["1. Activos NIIF 13", "2. DCF & WACC"])
-
-    with v1:
-        clase = str_app.selectbox(
-            "Clase", ["Vehículos", "Maquinaria", "Inmuebles", "Inventario"]
-        )
-        desc = str_app.text_input("Descripción", "Planta Industrial")
-        vc = str_app.number_input("Valor Contable ($)", value=50000.0)
-        vr = str_app.number_input("Valor Razonable ($)", value=70000.0)
-        if str_app.button("Ingresar Activo NIIF"):
-            nuevo = pd.DataFrame([{
-                "Clase": clase,
-                "Descripción": desc,
-                "Valor Contable": vc,
-                "Valor Razonable": vr,
-                "Norma Aplicada": "NIIF",
-            }])
-            str_app.session_state.activos_tangibles = pd.concat(
-                [str_app.session_state.activos_tangibles, nuevo],
-                ignore_index=True,
-            )
-            str_app.rerun()
-        if not str_app.session_state.activos_tangibles.empty:
-            str_app.dataframe(
-                str_app.session_state.activos_tangibles, use_container_width=True
-            )
-
-    with v2:
-        rf = str_app.number_input("Rf (%)", value=4.5) / 100
-        beta = str_app.number_input("Beta", value=1.2)
-        rm = str_app.number_input("Rm (%)", value=9.5) / 100
-        rp = str_app.number_input("Riesgo País (pb)", value=1200) / 10000
-        kd = str_app.number_input("Kd (%)", value=10.5) / 100
-        tax = str_app.number_input("Tasa Impositiva (%)", value=25.0) / 100
-        peso_e = str_app.slider("Proporción Equity (%)", 10, 100, 60) / 100
-
-        ke = rf + beta * (rm - rf) + rp
-        wacc = (peso_e * ke) + ((1 - peso_e) * kd * (1 - tax))
-
-        fcl1 = str_app.number_input("Flujo Libre Año 1 ($)", value=500000.0)
-        g_rate = (
-            str_app.slider("Crecimiento Años 2-5 (%)", 1.0, 15.0, 5.0) / 100
-        )
-        g_perp = (
-            str_app.slider("Crecimiento Perpetuidad (%)", 0.5, 5.0, 2.0) / 100
-        )
-
-        flujos = [fcl1 * ((1 + g_rate) ** i) for i in range(5)]
-        vp_flujos = sum([
-            f / ((1 + wacc) ** (i + 1)) for i, f in enumerate(flujos)
-        ])
-        v_term = (flujos[-1] * (1 + g_perp)) / (wacc - g_perp)
-        vp_vterm = v_term / ((1 + wacc) ** 5)
-        ev = vp_flujos + vp_vterm
-        str_app.session_state.enterprise_value = ev
-        str_app.metric("Enterprise Value (Valor Operativo)", f"${ev:,.2f}")
-
-# ------------------------------------------------------------------------------
-# PESTAÑA 6: ECOSISTEMA CRESA
-# ------------------------------------------------------------------------------
 with tab_cresa:
     str_app.subheader("🌐 Ecosistema CRESA & Validadores OCI")
-    cb1, cb2 = str_app.columns(2)
-    with cb1:
-        str_app.link_button(
-            "🚀 Plataforma Nexum 360",
-            "https://nexum360.com.ec/",
-            use_container_width=True,
-        )
-        str_app.link_button(
-            "🔍 Consulta RUC en SRI",
-            "https://srienlinea.sri.gob.ec/sri-en-linea/SriRucWeb/ConsultaRuc/Consultas/consultaRuc",
-            use_container_width=True,
-        )
-    with cb2:
-        str_app.link_button(
-            "📋 Certificado Afiliación IESS",
-            "https://www.iess.gob.ec/afiliado-web/pages/opcionesGenerales/seleccionCertificadoDeAfiliacion.jsf",
-            use_container_width=True,
-        )
-        str_app.link_button(
-            "🚦 Citaciones ANT",
-            "https://consultaweb.ant.gob.ec/PortalWEB/paginas/clientes/clp_criterio_consulta.jsp",
-            use_container_width=True,
-        )
+    str_app.link_button(
+        "🚀 Nexum 360", "https://nexum360.com.ec/", use_container_width=True
+    )
+    str_app.link_button(
+        "🔍 SRI RUC",
+        "https://srienlinea.sri.gob.ec/sri-en-linea/SriRucWeb/ConsultaRuc/Consultas/consultaRuc",
+        use_container_width=True,
+    )
 
-# ------------------------------------------------------------------------------
-# PESTAÑA 7: SALAS DE EXPERIENCIA
-# ------------------------------------------------------------------------------
 with tab_salas:
     str_app.subheader("🏬 Salas de Experiencia Comercial")
-    str_app.write(
-        "Acceso directo a portales de retail para adquisición de bienes:"
-    )
-
-    cs1, cs2, cs3 = str_app.columns(3)
-    cs1.link_button(
+    str_app.link_button(
         "🛒 Orve Hogar", "https://www.orvehogar.com", use_container_width=True
     )
-    cs2.link_button(
+    str_app.link_button(
         "🛒 Almacenes Japón",
         "https://www.almacenesjapon.com",
         use_container_width=True,
     )
-    cs3.link_button(
-        "🛒 Créditos Económicos",
-        "https://www.creditoseconomicos.com",
-        use_container_width=True,
-    )
-
-# ==============================================================================
-# INDICADORES ECONÓMICOS & PANEL ADMINISTRATIVO
-# ==============================================================================
-str_app.write("---")
-str_app.markdown("### 📊 Indicadores Económicos Globales")
-
-
-@str_app.cache_data(ttl=300)
-def obtener_indicadores():
-    tickers = {
-        "S&P 500": "^GSPC",
-        "NASDAQ 100": "^NDX",
-        "Petróleo WTI": "USO",
-        "Oro": "GLD",
-        "Bitcoin": "BTC-USD",
-    }
-    res = {}
-    for k, v in tickers.items():
-        try:
-            hist = yf.Ticker(v).history(period="2d")
-            if len(hist) >= 2:
-                p_act = hist["Close"].iloc[-1]
-                p_ant = hist["Close"].iloc[-2]
-                pct = ((p_act - p_ant) / p_ant) * 100
-                res[k] = (f"${p_act:,.2f}", f"{pct:+.2f}%")
-            else:
-                res[k] = ("N/A", "0.00%")
-        except Exception:
-            res[k] = ("N/A", "0.00%")
-    return res
-
-
-datos_m = obtener_indicadores()
-cols_m = str_app.columns(5)
-for idx, (k, v) in enumerate(datos_m.items()):
-    val, delta = v
-    cols_m[idx].metric(k, val, delta)
-
-with str_app.expander("🔒 Panel de Administración y Registros Lead"):
-    pwd = str_app.text_input("Contraseña Administrador:", type="password")
-    if pwd == PASSWORD_DASHBOARD:
-        str_app.success("Acceso concedido.")
-        conn = sqlite3.connect("crm_escala.db")
-        df_leads = pd.read_sql_query("SELECT * FROM solicitudes", conn)
-        str_app.dataframe(df_leads, use_container_width=True)
-        conn.close()
